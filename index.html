@@ -1,0 +1,3280 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-H1toT4RanBpP2m1WnLRx4gz2uGKlzffzvE7GLObofCA='; style-src 'sha256-c+MjOm3wnwcQr/u4BG676ZH65ayKQUANwrl0E7nbAv8='; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none';">
+  <title>HKDSE 物理｜左右手定則 3D 互動實驗室</title>
+  <style>:root {
+  --bg: #0b1020;
+  --surface: #131b31;
+  --surface-2: #192442;
+  --surface-3: #223056;
+  --border: rgba(148, 163, 184, 0.22);
+  --text: #eef2ff;
+  --muted: #94a3b8;
+  --force: #ff5c6c;
+  --force-bg: rgba(255, 92, 108, 0.14);
+  --field: #38bdf8;
+  --field-bg: rgba(56, 189, 248, 0.14);
+  --current: #fbbf24;
+  --current-bg: rgba(251, 191, 36, 0.14);
+  --grip: #34d399;
+  --grip-bg: rgba(52, 211, 153, 0.14);
+  --accent: #6366f1;
+  --radius: 14px;
+  --shadow: 0 12px 30px rgba(2, 6, 23, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Microsoft JhengHei", "Microsoft YaHei", sans-serif;
+  background: radial-gradient(circle at 15% 10%, #172347 0%, var(--bg) 55%);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.app-shell {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 16px 20px 32px;
+}
+
+/* Topbar */
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: rgba(19, 27, 49, 0.9);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--force), var(--field), var(--current));
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #090d1a;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.topbar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.legend-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.pill-force { background: var(--force-bg); border-color: rgba(255, 92, 108, 0.4); color: #fda4af; }
+.pill-field { background: var(--field-bg); border-color: rgba(56, 189, 248, 0.4); color: #7dd3fc; }
+.pill-current { background: var(--current-bg); border-color: rgba(251, 191, 36, 0.4); color: #fde68a; }
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.dot-force { background: var(--force); box-shadow: 0 0 8px var(--force); }
+.dot-field { background: var(--field); box-shadow: 0 0 8px var(--field); }
+.dot-current { background: var(--current); box-shadow: 0 0 8px var(--current); }
+
+.lang-switch {
+  display: inline-flex;
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 3px;
+  border: 1px solid var(--border);
+}
+
+.lang-btn {
+  border: none;
+  background: transparent;
+  padding: 5px 10px;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  transition: 0.2s;
+}
+
+.lang-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Main Tabs */
+.main-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.nav-tab {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.94rem;
+  color: var(--muted);
+  transition: 0.2s;
+}
+
+.nav-tab:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.nav-tab.active {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.35);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* Decision Strip */
+.decision-strip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.strip-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.strip-header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.strip-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.decision-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rule-card {
+  text-align: left;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.16s, border-color 0.2s, background 0.2s;
+}
+
+.rule-card:hover {
+  transform: translateY(-2px);
+  background: var(--surface-3);
+}
+
+.rule-card.active[data-rule="left"] {
+  border-color: var(--force);
+  background: linear-gradient(180deg, rgba(255, 92, 108, 0.13), var(--surface-2));
+}
+
+.rule-card.active[data-rule="right"] {
+  border-color: var(--field);
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.13), var(--surface-2));
+}
+
+.rule-card.active[data-rule="grip"] {
+  border-color: var(--grip);
+  background: linear-gradient(180deg, rgba(52, 211, 153, 0.13), var(--surface-2));
+}
+
+.rule-tag {
+  align-self: flex-start;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.tag-left { background: var(--force-bg); color: #fda4af; }
+.tag-right { background: var(--field-bg); color: #7dd3fc; }
+.tag-grip { background: var(--grip-bg); color: #6ee7b7; }
+
+.rule-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.rule-flow {
+  margin: 0;
+  font-size: 0.84rem;
+  color: #e2e8f0;
+  font-weight: 500;
+}
+
+.rule-examples {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+/* Lab Grid */
+.lab-grid {
+  display: grid;
+  grid-template-columns: 1.32fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.viewport-card, .control-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.viewport-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.view-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.toolbar-label {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.preset-btn, .toggle-chip {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  transition: 0.15s;
+}
+
+.preset-btn.active, .toggle-chip.active {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
+
+.canvas-wrap {
+  position: relative;
+  width: 100%;
+  background: radial-gradient(circle at 50% 45%, #16213e 0%, #090e1c 100%);
+  border-radius: 0 0 var(--radius) var(--radius);
+  overflow: hidden;
+}
+
+#hand-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 760 / 520;
+  cursor: grab;
+  touch-action: none;
+}
+
+#hand-canvas:active {
+  cursor: grabbing;
+}
+
+.canvas-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.vec-badge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 3px 8px;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+.vec-force { background: rgba(225, 29, 72, 0.9); color: #fff; }
+.vec-field { background: rgba(2, 132, 199, 0.9); color: #fff; }
+.vec-current { background: rgba(217, 119, 6, 0.92); color: #fff; }
+.vec-grip { background: rgba(5, 150, 105, 0.9); color: #fff; }
+
+.paper-notation-box {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: rgba(11, 16, 32, 0.78);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 7px 10px;
+  font-size: 0.76rem;
+  pointer-events: none;
+}
+
+.notation-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sym-circle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.drag-hint {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  font-size: 0.76rem;
+  color: var(--muted);
+  background: rgba(11, 16, 32, 0.72);
+  padding: 4px 9px;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+/* Control Card */
+.control-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel-title-row h3, #grip-controls h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.pair-buttons, .charge-buttons, .grip-mode-row, .solenoid-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pair-btn, .charge-btn, .grip-type-btn, .sol-btn {
+  flex: 1 1 auto;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  padding: 7px 10px;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  transition: 0.15s;
+}
+
+.pair-btn.active, .charge-btn.active, .grip-type-btn.active, .sol-btn.active {
+  background: var(--surface-3);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.charge-trap-box {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+}
+
+.trap-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.trap-badge {
+  background: #f59e0b;
+  color: #0b1020;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+
+.electron-warning {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: #fde68a;
+}
+
+.dir-picker-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.dir-picker {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.dir-picker-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.dir-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.dir-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 6px 6px;
+  border-radius: 8px;
+  font-size: 0.79rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  transition: 0.15s;
+}
+
+.dir-btn:hover {
+  border-color: #64748b;
+  color: #fff;
+}
+
+.dir-btn.active {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
+
+.solver-result {
+  margin-top: 12px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.16), rgba(30, 41, 59, 0.9));
+  border: 1px solid rgba(99, 102, 241, 0.45);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.result-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  color: #c7d2fe;
+}
+
+.result-value {
+  margin-top: 4px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.result-explain {
+  margin: 6px 0 0;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+}
+
+.reveal-btn {
+  border: none;
+  background: #f59e0b;
+  color: #0b1020;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border-radius: 7px;
+}
+
+.pitfall-box {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.pitfall-box h4 {
+  margin: 0 0 6px;
+  font-size: 0.84rem;
+  color: #cbd5e1;
+}
+
+.pitfall-box ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.79rem;
+  color: var(--muted);
+}
+
+.pitfall-box li + li {
+  margin-top: 4px;
+}
+
+/* TAB 2: Sandbox */
+.sandbox-layout {
+  display: grid;
+  grid-template-columns: 270px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.sandbox-sidebar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sandbox-sidebar h2 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.scene-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 10px 11px;
+  transition: 0.15s;
+}
+
+.scene-btn.active {
+  border-color: var(--accent);
+  background: var(--surface-3);
+}
+
+.scene-btn strong {
+  display: block;
+  font-size: 0.88rem;
+}
+
+.scene-btn small {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.scene-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 7px;
+  border-radius: 7px;
+  flex-shrink: 0;
+}
+.badge-left { background: var(--force-bg); color: #fda4af; }
+.badge-right { background: var(--field-bg); color: #7dd3fc; }
+.badge-grip { background: var(--grip-bg); color: #6ee7b7; }
+
+.sandbox-stage {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sandbox-canvas-box {
+  background: #090e1c;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+#sandbox-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 820 / 460;
+}
+
+.sandbox-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface-2);
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.sb-control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+}
+
+.sb-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 6px 11px;
+  border-radius: 8px;
+  font-size: 0.81rem;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.sb-btn.active {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
+
+.sandbox-insight {
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  color: #e2e8f0;
+}
+
+/* TAB 3: Quiz */
+.quiz-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.quiz-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.quiz-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.quiz-header p {
+  margin: 4px 0 0;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.quiz-stats {
+  display: flex;
+  gap: 8px;
+}
+
+.stat-pill {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.stat-score {
+  background: rgba(52, 211, 153, 0.14);
+  border-color: rgba(52, 211, 153, 0.35);
+  color: #6ee7b7;
+}
+
+.quiz-body {
+  display: grid;
+  grid-template-columns: 440px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.quiz-diagram-card {
+  background: #090e1c;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#quiz-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 440 / 320;
+}
+
+.quiz-question-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.quiz-tag {
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.22);
+  color: #c7d2fe;
+  margin-bottom: 8px;
+}
+
+.quiz-question-card h3 {
+  margin: 0 0 14px;
+  font-size: 1.02rem;
+  line-height: 1.5;
+}
+
+.quiz-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quiz-opt {
+  text-align: left;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: 0.15s;
+}
+
+.quiz-opt:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface-3);
+}
+
+.quiz-opt.correct {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.18);
+  color: #a7f3d0;
+}
+
+.quiz-opt.wrong {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.18);
+  color: #fecaca;
+}
+
+.quiz-feedback {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.quiz-feedback.ok {
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #d1fae5;
+}
+
+.quiz-feedback.err {
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fee2e2;
+}
+
+.quiz-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.action-btn {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 9px;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.action-btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.action-btn.secondary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1020px) {
+  .decision-cards, .lab-grid, .sandbox-layout, .quiz-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .quiz-options {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Header -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-badge" aria-hidden="true">F·B·I</div>
+        <div>
+          <h1 id="app-title">HKDSE 物理｜左右手定則 3D 互動實驗室</h1>
+          <p id="app-subtitle" class="subtitle">弗萊明左手定則 · 弗萊明右手定則 · 右手握拳定則</p>
+        </div>
+      </div>
+
+      <div class="topbar-controls">
+        <div class="legend-pills" aria-label="Vector Color Legend">
+          <span class="pill pill-force"><span class="dot dot-force"></span><span data-i18n="legendForce">拇指：力 F / 運動 v</span></span>
+          <span class="pill pill-field"><span class="dot dot-field"></span><span data-i18n="legendField">食指：磁場 B (N→S)</span></span>
+          <span class="pill pill-current"><span class="dot dot-current"></span><span data-i18n="legendCurrent">中指：傳統電流 I (+→-)</span></span>
+        </div>
+
+        <div class="lang-switch" role="group" aria-label="Language Selector">
+          <button type="button" class="lang-btn active" data-lang="zh-HK">繁體</button>
+          <button type="button" class="lang-btn" data-lang="zh-CN">简体</button>
+          <button type="button" class="lang-btn" data-lang="en">EN</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Primary Navigation Tabs -->
+    <nav class="main-nav" role="tablist" aria-label="Learning Modules">
+      <button type="button" class="nav-tab active" data-tab="lab" role="tab" aria-selected="true" data-i18n="tabLab">1. 選對哪隻手 &amp; 3D 手模實驗室</button>
+      <button type="button" class="nav-tab" data-tab="sandbox" role="tab" aria-selected="false" data-i18n="tabSandbox">2. DSE 經典考題沙盒聯動</button>
+      <button type="button" class="nav-tab" data-tab="quiz" role="tab" aria-selected="false" data-i18n="tabQuiz">3. DSE 錯因診斷闖關</button>
+    </nav>
+
+    <!-- TAB 1: RULE SELECTOR + 3D HAND LAB -->
+    <main id="panel-lab" class="tab-panel active">
+      <!-- 1-Second Decision Tree -->
+      <section class="decision-strip" aria-labelledby="decision-heading">
+        <div class="strip-header">
+          <h2 id="decision-heading" data-i18n="decisionHeading">一秒分清「用哪隻手？」（先看題目給了什麼、問什麼）</h2>
+          <span class="strip-hint" data-i18n="decisionHint">點擊下方情景卡片，立即切換 3D 手模</span>
+        </div>
+        <div class="decision-cards">
+          <button type="button" class="rule-card active" data-rule="left">
+            <div class="rule-tag tag-left" data-i18n="tagLeft">電動機效應 · 左力</div>
+            <h3 data-i18n="cardLeftTitle">弗萊明左手定則</h3>
+            <p class="rule-flow" data-i18n="cardLeftFlow">已知：通電電流 I + 外加磁場 B → 求：磁力 / 運動方向 F</p>
+            <span class="rule-examples" data-i18n="cardLeftEx">應用：直流電動機、帶電粒子在磁場偏轉、通電導線受力</span>
+          </button>
+
+          <button type="button" class="rule-card" data-rule="right">
+            <div class="rule-tag tag-right" data-i18n="tagRight">發電機效應 · 右電</div>
+            <h3 data-i18n="cardRightTitle">弗萊明右手定則</h3>
+            <p class="rule-flow" data-i18n="cardRightFlow">已知：導體運動 v + 外加磁場 B → 求：感應電流方向 I</p>
+            <span class="rule-examples" data-i18n="cardRightEx">應用：金屬棒切割磁感線、發電機線圈感應電流</span>
+          </button>
+
+          <button type="button" class="rule-card" data-rule="grip">
+            <div class="rule-tag tag-grip" data-i18n="tagGrip">電流的磁效應 · 握拳</div>
+            <h3 data-i18n="cardGripTitle">右手握拳定則</h3>
+            <p class="rule-flow" data-i18n="cardGripFlow">已知：只有電流 I → 求：導線/螺線管自己產生的磁場 B</p>
+            <span class="rule-examples" data-i18n="cardGripEx">應用：直導線周圍磁感線方向、螺線管 N/S 極判斷</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Main 3D Workspace -->
+      <section class="lab-grid">
+        <!-- Left: 3D Canvas Viewport -->
+        <div class="viewport-card">
+          <div class="viewport-toolbar">
+            <div class="view-presets">
+              <span class="toolbar-label" data-i18n="cameraLabel">視角：</span>
+              <button type="button" class="preset-btn active" data-cam="iso" data-i18n="camIso">立體斜視</button>
+              <button type="button" class="preset-btn" data-cam="front" data-i18n="camFront">正視紙面</button>
+              <button type="button" class="preset-btn" data-cam="top" data-i18n="camTop">俯視</button>
+              <button type="button" class="preset-btn" data-cam="side" data-i18n="camSide">側視</button>
+            </div>
+            <div class="viewport-toggles">
+              <button type="button" id="btn-quiz-hide" class="toggle-chip" data-i18n="btnHideAnswer">遮住答案自測</button>
+            </div>
+          </div>
+
+          <div class="canvas-wrap">
+            <canvas id="hand-canvas" width="760" height="520" aria-label="Interactive 3D Hand Model"></canvas>
+            <div id="canvas-labels" class="canvas-labels" aria-hidden="true"></div>
+            <div class="paper-notation-box">
+              <div class="notation-item">
+                <span class="sym-circle">⊗</span>
+                <span data-i18n="symInto">射入紙面 (箭尾遠離你)</span>
+              </div>
+              <div class="notation-item">
+                <span class="sym-circle">⊙</span>
+                <span data-i18n="symOut">射出紙面 (箭頭指向你)</span>
+              </div>
+            </div>
+            <div class="drag-hint" data-i18n="dragHint">滑鼠拖曳可 360° 旋轉手模 · 滾輪縮放</div>
+          </div>
+        </div>
+
+        <!-- Right: Interactive Direction Solver Controls -->
+        <aside class="control-card">
+          <div id="fleming-controls">
+            <div class="panel-title-row">
+              <h3 id="solver-title" data-i18n="solverTitle">輸入任意兩個方向，3D 手模自動擺姿</h3>
+            </div>
+
+            <!-- Choose which two are known -->
+            <div class="known-pair-box">
+              <label class="field-label" data-i18n="knownPairLabel">選擇題目給定的兩個已知量：</label>
+              <div class="pair-buttons" id="pair-buttons">
+                <button type="button" class="pair-btn active" data-pair="BI" data-i18n="pairBI">已知 B 和 I → 求 F</button>
+                <button type="button" class="pair-btn" data-pair="FB" data-i18n="pairFB">已知 F 和 B → 求 I</button>
+                <button type="button" class="pair-btn" data-pair="FI" data-i18n="pairFI">已知 F 和 I → 求 B</button>
+              </div>
+            </div>
+
+            <!-- Electron / Conventional Current Trap Toggle (Left Hand) -->
+            <div id="charge-trap-box" class="charge-trap-box">
+              <div class="trap-header">
+                <span class="trap-badge">DSE 必考坑</span>
+                <span data-i18n="chargeTypeLabel">載流子 / 粒子類型：</span>
+              </div>
+              <div class="charge-buttons">
+                <button type="button" class="charge-btn active" data-charge="positive" data-i18n="chargePos">傳統電流 / 正電荷 (+)</button>
+                <button type="button" class="charge-btn" data-charge="electron" data-i18n="chargeElec">電子 / β 粒子 (e⁻)</button>
+              </div>
+              <p id="electron-warning" class="electron-warning hidden" data-i18n="electronWarn">
+                注意：電子帶負電！若電子向某方向移動，中指（傳統電流 I）必須指向其<strong>反方向</strong>。
+              </p>
+            </div>
+
+            <!-- Direction Selectors -->
+            <div class="dir-picker-group">
+              <div class="dir-picker">
+                <div class="dir-picker-head">
+                  <span id="known1-dot" class="dot dot-field"></span>
+                  <span id="known1-label">磁場方向 B</span>
+                </div>
+                <div id="known1-grid" class="dir-grid"></div>
+              </div>
+
+              <div class="dir-picker">
+                <div class="dir-picker-head">
+                  <span id="known2-dot" class="dot dot-current"></span>
+                  <span id="known2-label">電流方向 I</span>
+                </div>
+                <div id="known2-grid" class="dir-grid"></div>
+              </div>
+            </div>
+
+            <!-- Computed Output -->
+            <div id="solver-result" class="solver-result">
+              <div class="result-head">
+                <span id="result-label">求解結果（磁力 F）</span>
+                <button type="button" id="btn-reveal-answer" class="reveal-btn hidden" data-i18n="btnReveal">點擊揭曉答案</button>
+              </div>
+              <div id="result-value" class="result-value">向上 ↑</div>
+              <p id="result-explain" class="result-explain"></p>
+            </div>
+          </div>
+
+          <!-- Grip Rule Controls (shown when rule === 'grip') -->
+          <div id="grip-controls" class="hidden">
+            <h3 data-i18n="gripSolverTitle">右手握拳定則參數設定</h3>
+            <div class="grip-mode-row">
+              <button type="button" class="grip-type-btn active" data-griptype="wire" data-i18n="gripWire">直導線 Straight Wire</button>
+              <button type="button" class="grip-type-btn" data-griptype="solenoid" data-i18n="gripSolenoid">螺線管 Solenoid</button>
+            </div>
+
+            <div id="grip-wire-options" class="dir-picker">
+              <div class="dir-picker-head">
+                <span class="dot dot-current"></span>
+                <span data-i18n="wireCurrentDir">直導線電流 I 方向：</span>
+              </div>
+              <div id="grip-wire-dir-grid" class="dir-grid"></div>
+            </div>
+
+            <div id="grip-solenoid-options" class="dir-picker hidden">
+              <div class="dir-picker-head">
+                <span class="dot dot-current"></span>
+                <span data-i18n="solenoidDir">螺線管前方電流方向（四指環繞方向）：</span>
+              </div>
+              <div class="solenoid-btns">
+                <button type="button" class="sol-btn active" data-sol="up" data-i18n="solFrontUp">線圈前方電流向上 ↑</button>
+                <button type="button" class="sol-btn" data-sol="down" data-i18n="solFrontDown">線圈前方電流向下 ↓</button>
+              </div>
+            </div>
+
+            <div id="grip-result" class="solver-result">
+              <div class="result-head">
+                <span data-i18n="gripResultHead">磁場判斷結果</span>
+              </div>
+              <div id="grip-result-value" class="result-value">逆時針磁感線</div>
+              <p id="grip-result-explain" class="result-explain"></p>
+            </div>
+          </div>
+
+          <!-- Common Pitfall Quick Checklist -->
+          <div class="pitfall-box">
+            <h4 data-i18n="pitfallTitle">考場防錯備忘（真實比手時請核對）</h4>
+            <ul id="pitfall-list"></ul>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <!-- TAB 2: DSE CLASSIC SCENARIO SANDBOXES -->
+    <section id="panel-sandbox" class="tab-panel">
+      <div class="sandbox-layout">
+        <div class="sandbox-sidebar">
+          <h2 data-i18n="sandboxTitle">DSE 必考物理模型</h2>
+          <button type="button" class="scene-btn active" data-scene="motor">
+            <span class="scene-badge badge-left" data-i18n="badgeLeft">左手</span>
+            <div>
+              <strong data-i18n="sceneMotor">直流電動機 (DC Motor)</strong>
+              <small data-i18n="sceneMotorSub">矩形線圈力偶 + 換向器原理</small>
+            </div>
+          </button>
+          <button type="button" class="scene-btn" data-scene="generator">
+            <span class="scene-badge badge-right" data-i18n="badgeRight">右手</span>
+            <div>
+              <strong data-i18n="sceneGen">金屬棒切割磁感線</strong>
+              <small data-i18n="sceneGenSub">電磁感應方向 + 電流計偏轉</small>
+            </div>
+          </button>
+          <button type="button" class="scene-btn" data-scene="particle">
+            <span class="scene-badge badge-left" data-i18n="badgeLeft">左手</span>
+            <div>
+              <strong data-i18n="scenePart">帶電粒子在磁場偏轉</strong>
+              <small data-i18n="scenePartSub">α 質子 / β 電子陷阱對比</small>
+            </div>
+          </button>
+          <button type="button" class="scene-btn" data-scene="grip-scene">
+            <span class="scene-badge badge-grip" data-i18n="badgeGrip">握拳</span>
+            <div>
+              <strong data-i18n="sceneGrip">通電導線與螺線管磁場</strong>
+              <small data-i18n="sceneGripSub">小磁針偏轉 + N/S 極判斷</small>
+            </div>
+          </button>
+        </div>
+
+        <div class="sandbox-stage">
+          <div class="sandbox-canvas-box">
+            <canvas id="sandbox-canvas" width="820" height="460" aria-label="Physics Scenario Simulation"></canvas>
+          </div>
+          <div id="sandbox-controls" class="sandbox-controls"></div>
+          <div id="sandbox-insight" class="sandbox-insight"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: DSE DIAGNOSTIC QUIZ -->
+    <section id="panel-quiz" class="tab-panel">
+      <div class="quiz-container">
+        <div class="quiz-header">
+          <div>
+            <h2 data-i18n="quizHeading">HKDSE 真題思維闖關 · 錯因即時診斷</h2>
+            <p id="quiz-subtitle" data-i18n="quizSub">選項中包含「用錯左右手」「忘記電子反向」等經典陷阱，答錯會告訴你手勢哪一步出了問題。</p>
+          </div>
+          <div class="quiz-stats">
+            <span id="quiz-progress" class="stat-pill">第 1 / 8 題</span>
+            <span id="quiz-score" class="stat-pill stat-score">得分：0</span>
+          </div>
+        </div>
+
+        <div class="quiz-body">
+          <div class="quiz-diagram-card">
+            <canvas id="quiz-canvas" width="440" height="320" aria-label="Question Physics Diagram"></canvas>
+          </div>
+
+          <div class="quiz-question-card">
+            <div id="quiz-tag" class="quiz-tag">弗萊明左手定則</div>
+            <h3 id="quiz-question-text">載入題目中...</h3>
+            <div id="quiz-options" class="quiz-options"></div>
+            <div id="quiz-feedback" class="quiz-feedback hidden"></div>
+            <div class="quiz-actions">
+              <button type="button" id="btn-prev-q" class="action-btn secondary" data-i18n="btnPrevQ">上一題</button>
+              <button type="button" id="btn-next-q" class="action-btn primary" data-i18n="btnNextQ">下一題</button>
+              <button type="button" id="btn-reset-q" class="action-btn secondary hidden" data-i18n="btnResetQ">重新測驗</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>'use strict';
+
+/* ============================================================================
+ * HKDSE Physics: Left-Hand & Right-Hand Rules Interactive 3D Lab
+ * Security Note: Pure client-side static app, zero innerHTML/eval/alert usage.
+ * ========================================================================== */
+
+// --- 1. Internationalization Dictionary (繁體 / 简体 / EN) ---
+const I18N = {
+  'zh-HK': {
+    appTitle: 'HKDSE 物理｜左右手定則 3D 互動實驗室',
+    appSubtitle: '弗萊明左手定則 · 弗萊明右手定則 · 右手握拳定則',
+    legendForce: '拇指：力 F / 運動 v',
+    legendField: '食指：磁場 B (N→S)',
+    legendCurrent: '中指：傳統電流 I (+→-)',
+    tabLab: '1. 選對哪隻手 & 3D 手模實驗室',
+    tabSandbox: '2. DSE 經典考題沙盒聯動',
+    tabQuiz: '3. DSE 錯因診斷闖關',
+    decisionHeading: '一秒分清「用哪隻手？」（先看題目給了什麼、問什麼）',
+    decisionHint: '點擊下方情景卡片，立即切換 3D 手模',
+    tagLeft: '電動機效應 · 左力',
+    cardLeftTitle: '弗萊明左手定則',
+    cardLeftFlow: '已知：通電電流 I + 外加磁場 B → 求：磁力 / 運動方向 F',
+    cardLeftEx: '應用：直流電動機、帶電粒子在磁場偏轉、通電導線受力',
+    tagRight: '發電機效應 · 右電',
+    cardRightTitle: '弗萊明右手定則',
+    cardRightFlow: '已知：導體運動 v + 外加磁場 B → 求：感應電流方向 I',
+    cardRightEx: '應用：金屬棒切割磁感線、發電機線圈感應電流',
+    tagGrip: '電流的磁效應 · 握拳',
+    cardGripTitle: '右手握拳定則',
+    cardGripFlow: '已知：只有電流 I → 求：導線/螺線管自己產生的磁場 B',
+    cardGripEx: '應用：直導線周圍磁感線方向、螺線管 N/S 極判斷',
+    cameraLabel: '視角：',
+    camIso: '立體斜視',
+    camFront: '正視紙面',
+    camTop: '俯視',
+    camSide: '側視',
+    btnHideAnswer: '遮住答案自測',
+    btnReveal: '點擊揭曉答案',
+    symInto: '射入紙面 (箭尾遠離你)',
+    symOut: '射出紙面 (箭頭指向你)',
+    dragHint: '滑鼠拖曳可 360° 旋轉手模 · 滾輪縮放',
+    solverTitle: '輸入任意兩個方向，3D 手模自動擺姿',
+    knownPairLabel: '選擇題目給定的兩個已知量：',
+    chargeTypeLabel: '載流子 / 粒子類型：',
+    chargePos: '傳統電流 / 正電荷 (+)',
+    chargeElec: '電子 / β 粒子 (e⁻)',
+    electronWarn: '注意：電子帶負電！若電子向某方向移動，中指（傳統電流 I）必須指向其反方向。',
+    gripSolverTitle: '右手握拳定則參數設定',
+    gripWire: '直導線 Straight Wire',
+    gripSolenoid: '螺線管 Solenoid',
+    wireCurrentDir: '直導線電流 I 方向：',
+    solenoidDir: '螺線管前方電流方向（四指環繞方向）：',
+    solFrontUp: '線圈前方電流向上 ↑',
+    solFrontDown: '線圈前方電流向下 ↓',
+    gripResultHead: '磁場判斷結果',
+    pitfallTitle: '考場防錯備忘（真實比手時請核對）',
+    sandboxTitle: 'DSE 必考物理模型',
+    badgeLeft: '左手',
+    badgeRight: '右手',
+    badgeGrip: '握拳',
+    sceneMotor: '直流電動機 (DC Motor)',
+    sceneMotorSub: '矩形線圈力偶 + 換向器原理',
+    sceneGen: '金屬棒切割磁感線',
+    sceneGenSub: '電磁感應方向 + 電流計偏轉',
+    scenePart: '帶電粒子在磁場偏轉',
+    scenePartSub: 'α 質子 / β 電子陷阱對比',
+    sceneGrip: '通電導線與螺線管磁場',
+    sceneGripSub: '小磁針偏轉 + N/S 極判斷',
+    quizHeading: 'HKDSE 真題思維闖關 · 錯因即時診斷',
+    quizSub: '選項中包含「用錯左右手」「忘記電子反向」等經典陷阱，答錯會告訴你手勢哪一步出了問題。',
+    btnPrevQ: '上一題',
+    btnNextQ: '下一題',
+    btnResetQ: '重新測驗',
+    dirs: {
+      up: '向上 ↑',
+      down: '向下 ↓',
+      left: '向左 ←',
+      right: '向右 →',
+      into: '射入紙面 ⊗',
+      out: '射出紙面 ⊙'
+    },
+    thumbLabelLeft: '拇指 F (磁力)',
+    thumbLabelRight: '拇指 v (運動)',
+    indexLabel: '食指 B (磁場)',
+    middleLabelLeft: '中指 I (傳統電流)',
+    middleLabelRight: '中指 I (感應電流)',
+    particleMoveLabel: '電子運動方向 v(e⁻)',
+    parallelWarn: '兩者互相平行（夾角 0° 或 180°）→ 結果為零！',
+    parallelExplainLeft: '當電流 I 與磁場 B 平行時，導線不受磁力（F = 0）。',
+    parallelExplainRight: '當運動方向 v 與磁場 B 平行時，導體沒有切割磁感線（感應電流 I = 0）。',
+    parallelExplainGeneral: '磁力/感應電流只存在於互相垂直的分量之間；請選擇彼此垂直的兩個方向以查看手勢！',
+    hiddenAnswerText: '已隱藏（請先用真手比劃！）',
+    pitfalls: {
+      left: [
+        '先確認三指互相垂直 90°，不要扭曲手腕。',
+        '磁場 B 由 N 極指向 S 極；⊗ 代表射入紙面，⊙ 代表射出紙面。',
+        '若題目問電子 / β 粒子 / 陰極射線，中指 I 必須指向電子運動的反方向！'
+      ],
+      right: [
+        '只有在「導體運動切割磁感線」產生感應電動勢/電流時才用右手定則。',
+        '拇指指導體運動方向 v，食指指 B，中指指感應電流 I。',
+        '若導線運動方向平行於磁場線，沒有切割磁感線，感應電流為 0。'
+      ],
+      grip: [
+        '這是「右手握拳定則」，不要跟弗萊明右手定則（三指垂直）混淆。',
+        '直導線：拇指指電流 I，四指彎曲方向為磁感線 B 方向。',
+        '螺線管：四指順着線圈傳統電流方向握住，拇指指向螺線管 N 極。'
+      ]
+    }
+  },
+  'zh-CN': {
+    appTitle: 'HKDSE 物理｜左右手定则 3D 互动实验室',
+    appSubtitle: '弗莱明左手定则 · 弗莱明右手定则 · 右手握拳定则',
+    legendForce: '拇指：力 F / 运动 v',
+    legendField: '食指：磁场 B (N→S)',
+    legendCurrent: '中指：传统电流 I (+→-)',
+    tabLab: '1. 选对哪只手 & 3D 手模实验室',
+    tabSandbox: '2. DSE 经典考题沙盒联动',
+    tabQuiz: '3. DSE 错因诊断闯关',
+    decisionHeading: '一秒分清「用哪只手？」（先看题目给了什么、问什么）',
+    decisionHint: '点击下方情景卡片，立即切换 3D 手模',
+    tagLeft: '电动机效应 · 左力',
+    cardLeftTitle: '弗莱明左手定则',
+    cardLeftFlow: '已知：通电电流 I + 外加磁场 B → 求：磁力 / 运动方向 F',
+    cardLeftEx: '应用：直流电动机、带电粒子在磁场偏转、通电导线受力',
+    tagRight: '发电机效应 · 右电',
+    cardRightTitle: '弗莱明右手定则',
+    cardRightFlow: '已知：导体运动 v + 外加磁场 B → 求：感应电流方向 I',
+    cardRightEx: '应用：金属棒切割磁感线、发电机线圈感应电流',
+    tagGrip: '电流的磁效应 · 握拳',
+    cardGripTitle: '右手握拳定则',
+    cardGripFlow: '已知：只有电流 I → 求：导线/螺线管自己产生的磁场 B',
+    cardGripEx: '应用：直导线周围磁感线方向、螺线管 N/S 极判断',
+    cameraLabel: '视角：',
+    camIso: '立体斜视',
+    camFront: '正视纸面',
+    camTop: '俯视',
+    camSide: '侧视',
+    btnHideAnswer: '遮住答案自测',
+    btnReveal: '点击揭晓答案',
+    symInto: '射入纸面 (箭尾远离你)',
+    symOut: '射出纸面 (箭头指向你)',
+    dragHint: '鼠标拖拽可 360° 旋转手模 · 滚轮缩放',
+    solverTitle: '输入任意两个方向，3D 手模自动摆姿',
+    knownPairLabel: '选择题目给定的两个已知量：',
+    chargeTypeLabel: '载流子 / 粒子类型：',
+    chargePos: '传统电流 / 正电荷 (+)',
+    chargeElec: '电子 / β 粒子 (e⁻)',
+    electronWarn: '注意：电子带负电！若电子向某方向移动，中指（传统电流 I）必须指向其反方向。',
+    gripSolverTitle: '右手握拳定则参数设定',
+    gripWire: '直导线 Straight Wire',
+    gripSolenoid: '螺线管 Solenoid',
+    wireCurrentDir: '直导线电流 I 方向：',
+    solenoidDir: '螺线管前方电流方向（四指环绕方向）：',
+    solFrontUp: '线圈前方电流向上 ↑',
+    solFrontDown: '线圈前方电流向下 ↓',
+    gripResultHead: '磁场判断结果',
+    pitfallTitle: '考场防错备忘（真实比手时请核对）',
+    sandboxTitle: 'DSE 必考物理模型',
+    badgeLeft: '左手',
+    badgeRight: '右手',
+    badgeGrip: '握拳',
+    sceneMotor: '直流电动机 (DC Motor)',
+    sceneMotorSub: '矩形线圈力偶 + 换向器原理',
+    sceneGen: '金属棒切割磁感线',
+    sceneGenSub: '电磁感应方向 + 电流计偏转',
+    scenePart: '带电粒子在磁场偏转',
+    scenePartSub: 'α 质子 / β 电子陷阱对比',
+    sceneGrip: '通电导线与螺线管磁场',
+    sceneGripSub: '小磁针偏转 + N/S 极判断',
+    quizHeading: 'HKDSE 真题思维闯关 · 错因即时诊断',
+    quizSub: '选项中包含「用错左右手」「忘记电子反向」等经典陷阱，答错会告诉你手势哪一步出了问题。',
+    btnPrevQ: '上一题',
+    btnNextQ: '下一题',
+    btnResetQ: '重新测验',
+    dirs: {
+      up: '向上 ↑',
+      down: '向下 ↓',
+      left: '向左 ←',
+      right: '向右 →',
+      into: '射入纸面 ⊗',
+      out: '射出纸面 ⊙'
+    },
+    thumbLabelLeft: '拇指 F (磁力)',
+    thumbLabelRight: '拇指 v (运动)',
+    indexLabel: '食指 B (磁场)',
+    middleLabelLeft: '中指 I (传统电流)',
+    middleLabelRight: '中指 I (感应电流)',
+    particleMoveLabel: '电子运动方向 v(e⁻)',
+    parallelWarn: '两者互相平行（夹角 0° 或 180°）→ 结果为零！',
+    parallelExplainLeft: '当电流 I 与磁场 B 平行时，导线不受磁力（F = 0）。',
+    parallelExplainRight: '当运动方向 v 与磁场 B 平行时，导体没有切割磁感线（感应电流 I = 0）。',
+    parallelExplainGeneral: '磁力/感应电流只存在于互相垂直的分量之间；请选择彼此垂直的两个方向以查看手势！',
+    hiddenAnswerText: '已隐藏（请先用真手比划！）',
+    pitfalls: {
+      left: [
+        '先确认三指互相垂直 90°，不要扭曲手腕。',
+        '磁场 B 由 N 极指向 S 极；⊗ 代表射入纸面，⊙ 代表射出纸面。',
+        '若题目问电子 / β 粒子 / 阴极射线，中指 I 必须指向电子运动的反方向！'
+      ],
+      right: [
+        '只有在「导体运动切割磁感线」产生感应电动势/电流时才用右手定则。',
+        '拇指指导体运动方向 v，食指指 B，中指指感应电流 I。',
+        '若导线运动方向平行于磁场线，没有切割磁感线，感应电流为 0。'
+      ],
+      grip: [
+        '这是「右手握拳定则」，不要跟弗莱明右手定则（三指垂直）混淆。',
+        '直导线：拇指指电流 I，四指弯曲方向为磁感线 B 方向。',
+        '螺线管：四指顺着线圈传统电流方向握住，拇指指向螺线管 N 极。'
+      ]
+    }
+  },
+  en: {
+    appTitle: 'HKDSE Physics | Left & Right-Hand Rules 3D Lab',
+    appSubtitle: "Fleming's Left-Hand Rule · Fleming's Right-Hand Rule · Right-Hand Grip Rule",
+    legendForce: 'Thumb: Force F / Motion v',
+    legendField: 'First: B-Field (N→S)',
+    legendCurrent: 'Second: Current I (+→-)',
+    tabLab: '1. Rule Selector & 3D Hand Lab',
+    tabSandbox: '2. DSE Scenario Sandboxes',
+    tabQuiz: '3. DSE Diagnostic Quiz',
+    decisionHeading: '1-Second Rule Selector (Check Given vs Unknown)',
+    decisionHint: 'Click a scenario card below to switch the 3D hand model',
+    tagLeft: 'Motor Effect · Force',
+    cardLeftTitle: "Fleming's Left-Hand Rule",
+    cardLeftFlow: 'Given: Current I + Magnetic Field B → Find: Force / Motion F',
+    cardLeftEx: 'Uses: DC motor, charged particle deflection, force on wire',
+    tagRight: 'Generator Effect · Induction',
+    cardRightTitle: "Fleming's Right-Hand Rule",
+    cardRightFlow: 'Given: Conductor Motion v + B-Field → Find: Induced Current I',
+    cardRightEx: 'Uses: Moving rod cutting flux, AC/DC generator coil',
+    tagGrip: 'Magnetic Effect of Current',
+    cardGripTitle: 'Right-Hand Grip Rule',
+    cardGripFlow: 'Given: Current I only → Find: Self-generated B-Field / Poles',
+    cardGripEx: 'Uses: Straight wire B-loops, solenoid N/S poles',
+    cameraLabel: 'View:',
+    camIso: '3D Iso',
+    camFront: 'Front (Page)',
+    camTop: 'Top',
+    camSide: 'Side',
+    btnHideAnswer: 'Hide Answer (Self-Test)',
+    btnReveal: 'Reveal Answer',
+    symInto: 'Into the page (tail away)',
+    symOut: 'Out of the page (tip at you)',
+    dragHint: 'Drag to orbit 360° · Scroll to zoom',
+    solverTitle: 'Pick any 2 directions — 3D hand poses automatically',
+    knownPairLabel: 'Choose the 2 known quantities:',
+    chargeTypeLabel: 'Charge Carrier / Particle:',
+    chargePos: 'Conventional Current / +q',
+    chargeElec: 'Electron / β-particle (e⁻)',
+    electronWarn: 'Trap Alert: Electrons are negative! Point Second Finger (I) OPPOSITE to electron motion.',
+    gripSolverTitle: 'Right-Hand Grip Rule Settings',
+    gripWire: 'Straight Wire',
+    gripSolenoid: 'Solenoid',
+    wireCurrentDir: 'Wire Current I Direction:',
+    solenoidDir: 'Current on Front Face of Coil (Curled Fingers):',
+    solFrontUp: 'Front-face current UP ↑',
+    solFrontDown: 'Front-face current DOWN ↓',
+    gripResultHead: 'Magnetic Field Result',
+    pitfallTitle: 'Exam Checklist (Verify with your real hand)',
+    sandboxTitle: 'Classic HKDSE Scenarios',
+    badgeLeft: 'Left',
+    badgeRight: 'Right',
+    badgeGrip: 'Grip',
+    sceneMotor: 'DC Motor',
+    sceneMotorSub: 'Couple on coil + split-ring commutator',
+    sceneGen: 'Moving Rod Induction',
+    sceneGenSub: 'Cutting B-flux + galvanometer deflection',
+    scenePart: 'Charged Particle in B-Field',
+    scenePartSub: 'Proton (α) vs Electron (β) trap',
+    sceneGrip: 'Wire & Solenoid B-Field',
+    sceneGripSub: 'Compass deflection + N/S poles',
+    quizHeading: 'HKDSE Diagnostic Quiz',
+    quizSub: 'Distractors include wrong-hand and electron-reversal traps, with instant targeted feedback.',
+    btnPrevQ: 'Previous',
+    btnNextQ: 'Next',
+    btnResetQ: 'Restart Quiz',
+    dirs: {
+      up: 'Up ↑',
+      down: 'Down ↓',
+      left: 'Left ←',
+      right: 'Right →',
+      into: 'Into Page ⊗',
+      out: 'Out of Page ⊙'
+    },
+    thumbLabelLeft: 'Thumb F (Force)',
+    thumbLabelRight: 'Thumb v (Motion)',
+    indexLabel: 'First B (Field)',
+    middleLabelLeft: 'Second I (Current)',
+    middleLabelRight: 'Second I (Induced)',
+    particleMoveLabel: 'Electron motion v(e⁻)',
+    parallelWarn: 'Vectors are parallel (0° or 180°) → Result is ZERO!',
+    parallelExplainLeft: 'When current I is parallel to B-field, magnetic force F = 0.',
+    parallelExplainRight: 'When motion v is parallel to B-field, no flux lines are cut (induced I = 0).',
+    parallelExplainGeneral: 'Force/induction requires perpendicular components. Pick two perpendicular directions to see the hand pose!',
+    hiddenAnswerText: 'Hidden (Try with your real hand first!)',
+    pitfalls: {
+      left: [
+        'Keep Thumb, First, and Second fingers mutually at 90°.',
+        'B points from N to S; ⊗ = into the page, ⊙ = out of the page.',
+        'For electrons / β particles, Second finger (I) points OPPOSITE to electron velocity!'
+      ],
+      right: [
+        'Use Fleming Right-Hand Rule ONLY for electromagnetic induction (motion cutting B-field).',
+        'Thumb = Motion v, First = B-field, Second = Induced current I.',
+        'Moving parallel to B-field lines induces zero current.'
+      ],
+      grip: [
+        'Do not confuse Right-Hand Grip Rule with Fleming Right-Hand Rule.',
+        'Straight wire: Thumb = Current I, curled fingers = circular B-field lines.',
+        'Solenoid: Curled fingers follow current I around loops; Thumb points to North pole.'
+      ]
+    }
+  }
+};
+
+// --- 2. Vector Math & Physics Core ---
+const DIRS = {
+  up:    [0, 1, 0],
+  down:  [0, -1, 0],
+  left:  [-1, 0, 0],
+  right: [1, 0, 0],
+  into:  [0, 0, -1],
+  out:   [0, 0, 1]
+};
+const DIR_KEYS = ['up', 'down', 'left', 'right', 'into', 'out'];
+
+function vecAdd(a, b) { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
+function vecSub(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+function vecScale(a, s) { return [a[0] * s, a[1] * s, a[2] * s]; }
+function vecDot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+function vecCross(a, b) {
+  return [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0]
+  ];
+}
+function vecLen(a) { return Math.hypot(a[0], a[1], a[2]); }
+function vecNorm(a) {
+  const l = vecLen(a);
+  return l > 1e-6 ? [a[0] / l, a[1] / l, a[2] / l] : [0, 0, 0];
+}
+function negVec(v) { return [-v[0], -v[1], -v[2]]; }
+
+function dirKeyFromVec(v) {
+  for (const k of DIR_KEYS) {
+    if (vecDot(v, DIRS[k]) > 0.9) return k;
+  }
+  return null;
+}
+
+// Quaternion utilities for smooth 3D hand rotation
+function matToQuat(ux, uy, uz) {
+  const m00 = ux[0], m01 = uy[0], m02 = uz[0];
+  const m10 = ux[1], m11 = uy[1], m12 = uz[1];
+  const m20 = ux[2], m21 = uy[2], m22 = uz[2];
+  const tr = m00 + m11 + m22;
+  let w, x, y, z;
+  if (tr > 0) {
+    const s = Math.sqrt(tr + 1.0) * 2;
+    w = 0.25 * s;
+    x = (m21 - m12) / s;
+    y = (m02 - m20) / s;
+    z = (m10 - m01) / s;
+  } else if (m00 > m11 && m00 > m22) {
+    const s = Math.sqrt(1.0 + m00 - m11 - m22) * 2;
+    w = (m21 - m12) / s;
+    x = 0.25 * s;
+    y = (m01 + m10) / s;
+    z = (m02 + m20) / s;
+  } else if (m11 > m22) {
+    const s = Math.sqrt(1.0 + m11 - m00 - m22) * 2;
+    w = (m02 - m20) / s;
+    x = (m01 + m10) / s;
+    y = 0.25 * s;
+    z = (m12 + m21) / s;
+  } else {
+    const s = Math.sqrt(1.0 + m22 - m00 - m11) * 2;
+    w = (m10 - m01) / s;
+    x = (m02 + m20) / s;
+    y = (m12 + m21) / s;
+    z = 0.25 * s;
+  }
+  const len = Math.hypot(w, x, y, z);
+  return [w / len, x / len, y / len, z / len];
+}
+
+function slerpQuat(q1, q2, t) {
+  let dot = q1[0] * q2[0] + q1[1] * q2[1] + q1[2] * q2[2] + q1[3] * q2[3];
+  let b = q2;
+  if (dot < 0) {
+    dot = -dot;
+    b = [-q2[0], -q2[1], -q2[2], -q2[3]];
+  }
+  if (dot > 0.9995) {
+    const res = [
+      q1[0] + t * (b[0] - q1[0]),
+      q1[1] + t * (b[1] - q1[1]),
+      q1[2] + t * (b[2] - q1[2]),
+      q1[3] + t * (b[3] - q1[3])
+    ];
+    const len = Math.hypot(res[0], res[1], res[2], res[3]);
+    return [res[0] / len, res[1] / len, res[2] / len, res[3] / len];
+  }
+  const theta0 = Math.acos(Math.min(1, Math.max(-1, dot)));
+  const theta = theta0 * t;
+  const sinTheta = Math.sin(theta);
+  const sinTheta0 = Math.sin(theta0);
+  const s0 = Math.cos(theta) - dot * sinTheta / sinTheta0;
+  const s1 = sinTheta / sinTheta0;
+  return [
+    s0 * q1[0] + s1 * b[0],
+    s0 * q1[1] + s1 * b[1],
+    s0 * q1[2] + s1 * b[2],
+    s0 * q1[3] + s1 * b[3]
+  ];
+}
+
+function quatToMat(q) {
+  const [w, x, y, z] = q;
+  return [
+    [1 - 2 * y * y - 2 * z * z, 2 * x * y - 2 * w * z, 2 * x * z + 2 * w * y],
+    [2 * x * y + 2 * w * z, 1 - 2 * x * x - 2 * z * z, 2 * y * z - 2 * w * x],
+    [2 * x * z - 2 * w * y, 2 * y * z + 2 * w * x, 1 - 2 * x * x - 2 * y * y]
+  ];
+}
+
+function applyMat(mat, p) {
+  return [
+    mat[0][0] * p[0] + mat[0][1] * p[1] + mat[0][2] * p[2],
+    mat[1][0] * p[0] + mat[1][1] * p[1] + mat[1][2] * p[2],
+    mat[2][0] * p[0] + mat[2][1] * p[1] + mat[2][2] * p[2]
+  ];
+}
+
+// --- 3. Application State ---
+const state = {
+  lang: 'zh-HK',
+  tab: 'lab',
+  rule: 'left',       // 'left' | 'right' | 'grip'
+  knownPair: 'BI',    // 'BI' | 'FB' | 'FI' (for right rule, F means v)
+  chargeType: 'positive', // 'positive' | 'electron' (for left rule)
+  known1Dir: 'right',
+  known2Dir: 'into',
+  hideAnswer: false,
+  revealed: false,
+  gripType: 'wire',   // 'wire' | 'solenoid'
+  gripWireDir: 'out',
+  gripSolDir: 'up',
+  // Camera
+  camYaw: -0.52,
+  camPitch: 0.34,
+  camDist: 7.4,
+  targetYaw: -0.52,
+  targetPitch: 0.34,
+  currentQuat: [1, 0, 0, 0],
+  targetQuat: [1, 0, 0, 0],
+  // Computed solution
+  solved: {
+    valid: true,
+    F: [0, 1, 0],
+    B: [1, 0, 0],
+    I: [0, 0, -1],
+    resultKey: 'up',
+    resultRole: 'F'
+  },
+  // Sandbox state
+  sandboxScene: 'motor',
+  sbTime: 0,
+  sbMotor: { angle: 0.35, running: true, polarity: 1, magnetFlip: 1 },
+  sbGen: { rodX: 0, dir: 1, auto: true, magnetDir: 'into', phase: 0 },
+  sbPart: { type: 'proton', fieldDir: 'into', t: 0 },
+  sbGrip: { mode: 'wire', wireDir: 'out', solFront: 'up', compassAngle: 0 },
+  // Quiz state
+  quizIndex: 0,
+  quizAnswers: []
+};
+
+// --- 4. Physics Solver ---
+function solveFleming() {
+  const isLeft = state.rule === 'left';
+  const pair = state.knownPair; // 'BI', 'FB', 'FI'
+  let v1 = DIRS[state.known1Dir];
+  let v2 = DIRS[state.known2Dir];
+
+  // In Left-hand mode with electron selected, if I is one of the inputs, v2 (or v1) represents electron velocity!
+  // We convert electron velocity to conventional current I = -v_electron before computing.
+  const electronMode = isLeft && state.chargeType === 'electron';
+
+  let F, B, I, resultVec, resultRole;
+
+  if (pair === 'BI') {
+    B = v1;
+    I = electronMode ? negVec(v2) : v2;
+    // Left: F = I x B ; Right: v = B x I
+    F = isLeft ? vecCross(I, B) : vecCross(B, I);
+    resultVec = F;
+    resultRole = isLeft ? 'F' : 'v';
+  } else if (pair === 'FB') {
+    F = v1; // F (left) or v (right)
+    B = v2;
+    // Left: F = I x B => I = B x F
+    // Right: I = v x B
+    I = isLeft ? vecCross(B, F) : vecCross(F, B);
+    resultVec = electronMode ? negVec(I) : I;
+    resultRole = 'I';
+  } else {
+    // 'FI'
+    F = v1;
+    I = electronMode ? negVec(v2) : v2;
+    // Left: F = I x B => B = F x I
+    // Right: I = v x B => B = I x v
+    B = isLeft ? vecCross(F, I) : vecCross(I, F);
+    resultVec = B;
+    resultRole = 'B';
+  }
+
+  const valid = vecLen(resultVec) > 0.5;
+  if (valid) {
+    state.solved = {
+      valid: true,
+      F: vecNorm(F),
+      B: vecNorm(B),
+      I: vecNorm(I),
+      resultKey: dirKeyFromVec(resultVec),
+      resultRole
+    };
+    // Build orientation matrix R = [ux, uy, uz] where ux = B, uy = I, uz = B x I
+    const ux = state.solved.B;
+    const uy = state.solved.I;
+    const uz = vecCross(ux, uy);
+    state.targetQuat = matToQuat(ux, uy, uz);
+  } else {
+    state.solved = {
+      valid: false,
+      F: [0, 1, 0],
+      B: [1, 0, 0],
+      I: [0, 0, 1],
+      resultKey: null,
+      resultRole
+    };
+  }
+}
+
+function solveGrip() {
+  if (state.gripType === 'wire') {
+    const I = DIRS[state.gripWireDir];
+    // Align local +Y (Thumb) with I
+    let ref = Math.abs(vecDot(I, [0, 0, 1])) < 0.9 ? [0, 0, 1] : [1, 0, 0];
+    const ux = vecNorm(vecCross(I, ref));
+    const uz = vecNorm(vecCross(ux, I));
+    state.targetQuat = matToQuat(ux, I, uz);
+  } else {
+    // Solenoid along X-axis.
+    // Front face (+Z) current UP (+Y) => Thumb points LEFT (-X) => North on Left.
+    const thumbDir = state.gripSolDir === 'up' ? [-1, 0, 0] : [1, 0, 0];
+    const uy = thumbDir;
+    const ux = [0, 0, 1]; // front face +Z
+    const uz = vecCross(ux, uy);
+    state.targetQuat = matToQuat(ux, uy, uz);
+  }
+}
+
+// --- 5. Custom 3D Hand & Vector Renderer ---
+const handCanvas = document.getElementById('hand-canvas');
+const handCtx = handCanvas.getContext('2d');
+const labelsOverlay = document.getElementById('canvas-labels');
+
+function projectPoint(p, cam) {
+  const rel = vecSub(p, cam.eye);
+  const cx = vecDot(rel, cam.right);
+  const cy = vecDot(rel, cam.up);
+  const cz = vecDot(rel, cam.forward);
+  if (cz <= 0.2) return null;
+  const scale = cam.fov / cz;
+  return {
+    x: cam.w * 0.5 + cx * scale,
+    y: cam.h * 0.5 - cy * scale,
+    z: cz,
+    scale
+  };
+}
+
+function getCameraBasis() {
+  const pitch = Math.max(-1.42, Math.min(1.42, state.camPitch));
+  const yaw = state.camYaw;
+  const D = state.camDist;
+  const eye = [
+    D * Math.cos(pitch) * Math.sin(yaw),
+    D * Math.sin(pitch),
+    D * Math.cos(pitch) * Math.cos(yaw)
+  ];
+  const forward = vecNorm(vecScale(eye, -1));
+  const right = vecNorm(vecCross(forward, [0, 1, 0]));
+  const up = vecCross(right, forward);
+  return {
+    eye, forward, right, up,
+    w: handCanvas.width,
+    h: handCanvas.height,
+    fov: 540
+  };
+}
+
+function shadeColor(hex, intensity) {
+  const num = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, Math.max(0, Math.round(((num >> 16) & 255) * intensity)));
+  const g = Math.min(255, Math.max(0, Math.round(((num >> 8) & 255) * intensity)));
+  const b = Math.min(255, Math.max(0, Math.round((num & 255) * intensity)));
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+// Build 3D primitives for Fleming Left/Right Hand
+function buildFlemingHandPrimitives(mat, isLeft, showResult, resultRole) {
+  const s = isLeft ? -1 : 1; // Left thumb = -Z_local, Right thumb = +Z_local
+  const prims = [];
+  const skinLight = '#f3bfa0';
+  const skinPalm = '#e5a382';
+  const skinBack = '#cf8c6b';
+  const nailColor = '#fde6dc';
+  const cuffColor = '#475569';
+
+  const T = (p) => applyMat(mat, p);
+
+  // Palm slab (8 vertices -> 6 quads) so Palm (+Y side) vs Back (-Y side) are unmistakably distinct!
+  function addBox(cx, cy, cz, sx, sy, sz, colorTop, colorBot, colorSide) {
+    const hx = sx * 0.5, hy = sy * 0.5, hz = sz * 0.5;
+    const verts = [
+      [cx - hx, cy - hy, cz - hz], [cx + hx, cy - hy, cz - hz],
+      [cx + hx, cy + hy, cz - hz], [cx - hx, cy + hy, cz - hz],
+      [cx - hx, cy - hy, cz + hz], [cx + hx, cy - hy, cz + hz],
+      [cx + hx, cy + hy, cz + hz], [cx - hx, cy + hy, cz + hz]
+    ].map(T);
+    const faces = [
+      { idx: [3, 2, 6, 7], col: colorTop }, // +Y (palm face)
+      { idx: [0, 4, 5, 1], col: colorBot }, // -Y (back of hand)
+      { idx: [4, 7, 6, 5], col: colorSide },
+      { idx: [0, 1, 2, 3], col: colorSide },
+      { idx: [1, 5, 6, 2], col: colorSide },
+      { idx: [0, 3, 7, 4], col: colorSide }
+    ];
+    for (const f of faces) {
+      const pts = f.idx.map((i) => verts[i]);
+      const e1 = vecSub(pts[1], pts[0]);
+      const e2 = vecSub(pts[2], pts[0]);
+      const normal = vecNorm(vecCross(e1, e2));
+      const center = vecScale(vecAdd(vecAdd(pts[0], pts[1]), vecAdd(pts[2], pts[3])), 0.25);
+      prims.push({ type: 'poly', pts, normal, color: f.col, center });
+    }
+  }
+
+  function addSegment(a, b, r, color) {
+    const pa = T(a), pb = T(b);
+    prims.push({
+      type: 'capsule',
+      a: pa,
+      b: pb,
+      r,
+      color,
+      center: vecScale(vecAdd(pa, pb), 0.5)
+    });
+  }
+
+  // Wrist & Forearm Cuff
+  addSegment([-1.45, -0.05, 0], [-0.85, -0.02, 0], 0.36, cuffColor);
+  // Palm block (palm pad on +Y, back of hand darker on -Y)
+  addBox(-0.22, 0.0, 0.0, 1.25, 0.34, 1.05, skinPalm, skinBack, skinLight);
+  // Subtle palm lifelines / pad indicator
+  addSegment([-0.55, 0.17, -s * 0.2], [0.15, 0.17, s * 0.22], 0.04, '#d18868');
+
+  // 1. Index Finger (First Finger = B, along +X_local)
+  const iz = s * 0.36;
+  addSegment([0.4, 0.02, iz], [1.22, 0.02, iz], 0.15, skinLight);
+  addSegment([1.22, 0.02, iz], [1.92, 0.02, iz], 0.13, skinLight);
+  // Fingernail on dorsal (-Y) side
+  addSegment([1.76, -0.09, iz], [1.94, -0.09, iz], 0.06, nailColor);
+
+  // 2. Middle Finger (Second Finger = I, bends 90 deg to +Y_local)
+  const mz = s * 0.08;
+  addSegment([0.4, 0.08, mz], [0.64, 0.36, mz], 0.15, skinLight);
+  addSegment([0.64, 0.36, mz], [0.64, 1.75, mz], 0.13, skinLight);
+  addSegment([0.74, 1.60, mz], [0.74, 1.78, mz], 0.06, nailColor);
+
+  // 3. Thumb (Force F or Motion v, along s * +Z_local)
+  addSegment([-0.42, 0.04, s * 0.45], [-0.28, 0.06, s * 1.08], 0.18, skinLight);
+  addSegment([-0.28, 0.06, s * 1.08], [-0.24, 0.06, s * 1.68], 0.15, skinLight);
+  addSegment([-0.24, -0.07, s * 1.54], [-0.24, -0.07, s * 1.70], 0.06, nailColor);
+
+  // 4. Ring & Little fingers (curled into palm)
+  const rz = -s * 0.19;
+  addSegment([0.38, 0.06, rz], [0.62, 0.32, rz], 0.13, skinBack);
+  addSegment([0.62, 0.32, rz], [0.22, 0.44, rz], 0.12, skinBack);
+  const lz = -s * 0.42;
+  addSegment([0.35, 0.06, lz], [0.55, 0.28, lz], 0.11, skinBack);
+  addSegment([0.55, 0.28, lz], [0.20, 0.38, lz], 0.10, skinBack);
+
+  // 3D Vector Arrows from fingertips!
+  const hideThumb = !showResult && (resultRole === 'F' || resultRole === 'v');
+  const hideIndex = !showResult && resultRole === 'B';
+  const hideMiddle = !showResult && resultRole === 'I';
+
+  const thumbColor = hideThumb ? '#64748b' : '#ff4d61';
+  const indexColor = hideIndex ? '#64748b' : '#38bdf8';
+  const middleColor = hideMiddle ? '#64748b' : '#fbbf24';
+
+  const thumbTip = T([-0.24, 0.06, s * 1.74]);
+  const thumbEnd = T([-0.24, 0.06, s * 3.10]);
+  const indexTip = T([1.98, 0.02, iz]);
+  const indexEnd = T([3.25, 0.02, iz]);
+  const middleTip = T([0.64, 1.82, mz]);
+  const middleEnd = T([0.64, 3.10, mz]);
+
+  prims.push({ type: 'arrow', a: thumbTip, b: thumbEnd, color: thumbColor, center: vecScale(vecAdd(thumbTip, thumbEnd), 0.5), role: 'thumb' });
+  prims.push({ type: 'arrow', a: indexTip, b: indexEnd, color: indexColor, center: vecScale(vecAdd(indexTip, indexEnd), 0.5), role: 'index' });
+  prims.push({ type: 'arrow', a: middleTip, b: middleEnd, color: middleColor, center: vecScale(vecAdd(middleTip, middleEnd), 0.5), role: 'middle' });
+
+  return {
+    prims,
+    labelAnchors: {
+      thumb: thumbEnd,
+      index: indexEnd,
+      middle: middleEnd
+    }
+  };
+}
+
+// Build 3D primitives for Right-Hand Grip Rule
+function buildGripPrimitives(mat, animPhase) {
+  const prims = [];
+  const T = (p) => applyMat(mat, p);
+  const skinLight = '#f3bfa0';
+  const skinBack = '#cf8c6b';
+
+  function addSeg(a, b, r, color) {
+    const pa = T(a), pb = T(b);
+    prims.push({ type: 'capsule', a: pa, b: pb, r, color, center: vecScale(vecAdd(pa, pb), 0.5) });
+  }
+
+  const labelAnchors = {};
+
+  if (state.gripType === 'wire') {
+    // Copper straight wire along local Y
+    addSeg([0, -2.5, 0], [0, 2.5, 0], 0.14, '#d97706');
+    // Current arrow along +Y
+    const arrA = T([0, 1.5, 0]), arrB = T([0, 3.0, 0]);
+    prims.push({ type: 'arrow', a: arrA, b: arrB, color: '#fbbf24', center: vecScale(vecAdd(arrA, arrB), 0.5) });
+    labelAnchors.current = arrB;
+
+    // Right hand gripping wire: thumb pointing +Y, 4 fingers wrapping around wire in +Y right-hand sense (XZ plane: angle theta from +X toward -Z!)
+    // Wait: let's verify right-hand curl around +Y!
+    // Point right thumb along +Y: curled fingers sweep from +X -> -Z -> -X -> +Z!
+    // Check: (+X) x (+Y) = +Z, wait: (+Y) x (+X) = -Z! Yes! Thumb = +Y, at +X magnetic field is -Z!
+    addSeg([0.48, -0.35, 0.25], [0.42, 1.15, 0.25], 0.15, skinLight); // Thumb along +Y
+    addSeg([0.55, -0.5, -0.15], [0.55, 0.35, -0.15], 0.26, skinBack); // Palm back
+
+    // 4 curled fingers wrapping around Y
+    for (let f = 0; f < 4; f++) {
+      const yOff = 0.3 - f * 0.24;
+      const steps = 6;
+      for (let k = 0; k < steps; k++) {
+        const a0 = -0.3 + (k / steps) * 3.8;
+        const a1 = -0.3 + ((k + 1) / steps) * 3.8;
+        const r = 0.44;
+        addSeg([r * Math.cos(a0), yOff, -r * Math.sin(a0)], [r * Math.cos(a1), yOff, -r * Math.sin(a1)], 0.105, skinLight);
+      }
+    }
+
+    // Concentric Magnetic Field rings (Blue)
+    for (const ringR of [1.25, 1.85]) {
+      const segs = 28;
+      for (let k = 0; k < segs; k++) {
+        const a0 = (k / segs) * Math.PI * 2 + animPhase;
+        const a1 = ((k + 1) / segs) * Math.PI * 2 + animPhase;
+        const p0 = T([ringR * Math.cos(a0), 0, -ringR * Math.sin(a0)]);
+        const p1 = T([ringR * Math.cos(a1), 0, -ringR * Math.sin(a1)]);
+        if (k % 7 === 0) {
+          const pTip = T([ringR * Math.cos(a1 + 0.22), 0, -ringR * Math.sin(a1 + 0.22)]);
+          prims.push({ type: 'arrow', a: p0, b: pTip, color: '#38bdf8', center: p0 });
+        } else {
+          prims.push({ type: 'capsule', a: p0, b: p1, r: 0.045, color: '#38bdf8', center: vecScale(vecAdd(p0, p1), 0.5) });
+        }
+      }
+    }
+    labelAnchors.field = T([1.85, 0.25, 0]);
+  } else {
+    // Solenoid along local Y (rotated to world -X or +X by targetQuat)
+    const turns = 6;
+    const rad = 0.85;
+    const pts = [];
+    for (let i = 0; i <= 72; i++) {
+      const t = i / 72;
+      const ang = t * turns * Math.PI * 2;
+      const y = -1.7 + t * 3.4;
+      pts.push([rad * Math.cos(ang), y, -rad * Math.sin(ang)]);
+    }
+    for (let i = 0; i < pts.length - 1; i++) {
+      addSeg(pts[i], pts[i + 1], 0.07, '#f59e0b');
+    }
+    // B-field arrow exiting +Y (North pole)
+    const nStart = T([0, 1.1, 0]), nEnd = T([0, 2.7, 0]);
+    const sStart = T([0, -2.5, 0]), sEnd = T([0, -1.1, 0]);
+    prims.push({ type: 'arrow', a: nStart, b: nEnd, color: '#38bdf8', center: nEnd });
+    prims.push({ type: 'arrow', a: sStart, b: sEnd, color: '#38bdf8', center: sStart });
+    // Semi-transparent gripping hand cue on side
+    addSeg([1.05, 0.2, 0.15], [1.05, 1.35, 0.15], 0.15, skinLight); // Thumb -> North!
+    for (let f = 0; f < 3; f++) {
+      const yOff = 0.0 - f * 0.35;
+      addSeg([0.92, yOff, 0.55], [0.25, yOff, 0.92], 0.10, skinLight);
+    }
+    labelAnchors.north = nEnd;
+    labelAnchors.south = sStart;
+  }
+
+  return { prims, labelAnchors };
+}
+
+function drawHandViewport(timestamp) {
+  // Smooth SLERP hand orientation & camera interpolation
+  state.currentQuat = slerpQuat(state.currentQuat, state.targetQuat, 0.18);
+  state.camYaw += (state.targetYaw - state.camYaw) * 0.18;
+  state.camPitch += (state.targetPitch - state.camPitch) * 0.18;
+
+  const w = handCanvas.width;
+  const h = handCanvas.height;
+  handCtx.clearRect(0, 0, w, h);
+
+  // Background subtle grid
+  handCtx.strokeStyle = 'rgba(148, 163, 184, 0.08)';
+  handCtx.lineWidth = 1;
+  for (let gx = 40; gx < w; gx += 40) {
+    handCtx.beginPath(); handCtx.moveTo(gx, 0); handCtx.lineTo(gx, h); handCtx.stroke();
+  }
+  for (let gy = 40; gy < h; gy += 40) {
+    handCtx.beginPath(); handCtx.moveTo(0, gy); handCtx.lineTo(w, gy); handCtx.stroke();
+  }
+
+  const cam = getCameraBasis();
+  const mat = quatToMat(state.currentQuat);
+  const animPhase = (timestamp || 0) * 0.0012;
+
+  let sceneData;
+  if (state.rule === 'grip') {
+    sceneData = buildGripPrimitives(mat, animPhase);
+  } else if (state.solved.valid) {
+    sceneData = buildFlemingHandPrimitives(mat, state.rule === 'left', !state.hideAnswer || state.revealed, state.solved.resultRole);
+  } else {
+    sceneData = { prims: [], labelAnchors: {} };
+  }
+
+  // Add subtle world reference axes in bottom-left corner
+  const axisOrigin = [-2.5, -1.65, 0];
+  const worldAxes = [
+    { a: axisOrigin, b: vecAdd(axisOrigin, [0.7, 0, 0]), color: 'rgba(248,113,113,0.65)', label: '+X' },
+    { a: axisOrigin, b: vecAdd(axisOrigin, [0, 0.7, 0]), color: 'rgba(74,222,128,0.65)', label: '+Y' },
+    { a: axisOrigin, b: vecAdd(axisOrigin, [0, 0, 0.7]), color: 'rgba(96,165,250,0.65)', label: '+Z ⊙' }
+  ];
+
+  // Depth sort primitives (furthest first)
+  const renderList = sceneData.prims.map((p) => {
+    const cp = projectPoint(p.center, cam);
+    return { p, depth: cp ? cp.z : 9999 };
+  });
+  renderList.sort((a, b) => b.depth - a.depth);
+
+  const lightDir = vecNorm([0.45, 0.75, 0.65]);
+
+  for (const item of renderList) {
+    const p = item.p;
+    if (p.type === 'poly') {
+      const pts2d = p.pts.map((pt) => projectPoint(pt, cam));
+      if (pts2d.some((v) => !v)) continue;
+      // Backface / lighting
+      const toCam = vecNorm(vecSub(cam.eye, p.center));
+      if (vecDot(p.normal, toCam) < -0.15) continue;
+      const diff = Math.max(0.45, 0.55 + 0.45 * Math.max(0, vecDot(p.normal, lightDir)));
+      handCtx.fillStyle = shadeColor(p.color, diff);
+      handCtx.strokeStyle = 'rgba(15, 23, 42, 0.25)';
+      handCtx.lineWidth = 1;
+      handCtx.beginPath();
+      handCtx.moveTo(pts2d[0].x, pts2d[0].y);
+      for (let i = 1; i < pts2d.length; i++) handCtx.lineTo(pts2d[i].x, pts2d[i].y);
+      handCtx.closePath();
+      handCtx.fill();
+      handCtx.stroke();
+    } else if (p.type === 'capsule') {
+      const pa = projectPoint(p.a, cam);
+      const pb = projectPoint(p.b, cam);
+      if (!pa || !pb) continue;
+      const pxR = Math.max(2, p.r * ((pa.scale + pb.scale) * 0.5));
+      handCtx.lineCap = 'round';
+      handCtx.strokeStyle = shadeColor(p.color, 0.72);
+      handCtx.lineWidth = pxR * 2 + 2;
+      handCtx.beginPath(); handCtx.moveTo(pa.x, pa.y); handCtx.lineTo(pb.x, pb.y); handCtx.stroke();
+
+      handCtx.strokeStyle = p.color;
+      handCtx.lineWidth = pxR * 1.7;
+      handCtx.beginPath(); handCtx.moveTo(pa.x, pa.y); handCtx.lineTo(pb.x, pb.y); handCtx.stroke();
+    } else if (p.type === 'arrow') {
+      const pa = projectPoint(p.a, cam);
+      const pb = projectPoint(p.b, cam);
+      if (!pa || !pb) continue;
+      const dx = pb.x - pa.x, dy = pb.y - pa.y;
+      const len = Math.hypot(dx, dy);
+      if (len < 2) continue;
+      const ux = dx / len, uy = dy / len;
+      const headLen = Math.min(18, Math.max(9, len * 0.28));
+      handCtx.lineCap = 'round';
+      handCtx.strokeStyle = p.color;
+      handCtx.lineWidth = 5;
+      handCtx.beginPath();
+      handCtx.moveTo(pa.x, pa.y);
+      handCtx.lineTo(pb.x - ux * headLen * 0.7, pb.y - uy * headLen * 0.7);
+      handCtx.stroke();
+
+      handCtx.fillStyle = p.color;
+      handCtx.beginPath();
+      handCtx.moveTo(pb.x, pb.y);
+      handCtx.lineTo(pb.x - ux * headLen - uy * 7, pb.y - uy * headLen + ux * 7);
+      handCtx.lineTo(pb.x - ux * headLen + uy * 7, pb.y - uy * headLen - ux * 7);
+      handCtx.closePath();
+      handCtx.fill();
+    }
+  }
+
+  // Draw mini world axis gizmo
+  for (const ax of worldAxes) {
+    const p0 = projectPoint(ax.a, cam);
+    const p1 = projectPoint(ax.b, cam);
+    if (!p0 || !p1) continue;
+    handCtx.strokeStyle = ax.color;
+    handCtx.lineWidth = 2;
+    handCtx.beginPath(); handCtx.moveTo(p0.x, p0.y); handCtx.lineTo(p1.x, p1.y); handCtx.stroke();
+    handCtx.fillStyle = ax.color;
+    handCtx.font = 'bold 11px sans-serif';
+    handCtx.fillText(ax.label, p1.x + 3, p1.y + 3);
+  }
+
+  // Parallel warning message directly on canvas if invalid
+  if (state.rule !== 'grip' && !state.solved.valid) {
+    const t = I18N[state.lang];
+    handCtx.fillStyle = 'rgba(245, 158, 11, 0.16)';
+    handCtx.strokeStyle = '#f59e0b';
+    handCtx.lineWidth = 2;
+    handCtx.beginPath();
+    handCtx.roundRect(w * 0.15, h * 0.38, w * 0.7, 110, 14);
+    handCtx.fill();
+    handCtx.stroke();
+    handCtx.fillStyle = '#fde68a';
+    handCtx.font = 'bold 20px sans-serif';
+    handCtx.textAlign = 'center';
+    handCtx.fillText(t.parallelWarn, w * 0.5, h * 0.38 + 46);
+    handCtx.fillStyle = '#e2e8f0';
+    handCtx.font = '14px sans-serif';
+    handCtx.fillText(t.parallelExplainGeneral, w * 0.5, h * 0.38 + 80);
+    handCtx.textAlign = 'left';
+  }
+
+  updateOverlayLabels(sceneData.labelAnchors, cam);
+}
+
+function updateOverlayLabels(anchors, cam) {
+  const t = I18N[state.lang];
+  const nodes = [];
+  const cw = handCanvas.clientWidth || handCanvas.width;
+  const ch = handCanvas.clientHeight || handCanvas.height;
+  const sxRatio = cw / handCanvas.width;
+  const syRatio = ch / handCanvas.height;
+
+  function makeBadge(worldPos, text, cls) {
+    if (!worldPos) return;
+    const p = projectPoint(worldPos, cam);
+    if (!p) return;
+    const el = document.createElement('span');
+    el.className = `vec-badge ${cls}`;
+    el.textContent = text;
+    el.style.left = `${(p.x * sxRatio).toFixed(1)}px`;
+    el.style.top = `${(p.y * syRatio).toFixed(1)}px`;
+    nodes.push(el);
+  }
+
+  if (state.rule === 'grip') {
+    if (state.gripType === 'wire') {
+      makeBadge(anchors.current, `I (${t.dirs[state.gripWireDir]})`, 'vec-current');
+      makeBadge(anchors.field, 'B', 'vec-field');
+    } else {
+      makeBadge(anchors.north, 'N (Thumb)', 'vec-field');
+      makeBadge(anchors.south, 'S', 'vec-grip');
+    }
+  } else if (state.solved.valid) {
+    const showRes = !state.hideAnswer || state.revealed;
+    const role = state.solved.resultRole;
+    const hideF = !showRes && (role === 'F' || role === 'v');
+    const hideB = !showRes && role === 'B';
+    const hideI = !showRes && role === 'I';
+
+    const thumbTxt = state.rule === 'left' ? t.thumbLabelLeft : t.thumbLabelRight;
+    const midTxt = state.rule === 'left' ? t.middleLabelLeft : t.middleLabelRight;
+    makeBadge(anchors.thumb, hideF ? '? (Thumb)' : thumbTxt, 'vec-force');
+    makeBadge(anchors.index, hideB ? '? (First)' : t.indexLabel, 'vec-field');
+    makeBadge(anchors.middle, hideI ? '? (Second)' : midTxt, 'vec-current');
+  }
+
+  labelsOverlay.replaceChildren(...nodes);
+}
+
+// --- 6. Tab 2: DSE Scenario Sandboxes ---
+const sbCanvas = document.getElementById('sandbox-canvas');
+const sbCtx = sbCanvas.getContext('2d');
+
+function drawArrow2D(ctx, x1, y1, x2, y2, color, width = 3, label = '') {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.hypot(dx, dy);
+  if (len < 3) return;
+  const ux = dx / len, uy = dy / len;
+  const head = Math.min(13, len * 0.35);
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2 - ux * head * 0.6, y2 - uy * head * 0.6);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - ux * head - uy * (head * 0.48), y2 - uy * head + ux * (head * 0.48));
+  ctx.lineTo(x2 - ux * head + uy * (head * 0.48), y2 - uy * head - ux * (head * 0.48));
+  ctx.closePath();
+  ctx.fill();
+
+  if (label) {
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(label, x2 + 6, y2 + 4);
+  }
+  ctx.restore();
+}
+
+function drawFieldSymbol(ctx, x, y, type, color = '#38bdf8') {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(x, y, 10, 0, Math.PI * 2);
+  ctx.stroke();
+  if (type === 'into') {
+    ctx.beginPath();
+    ctx.moveTo(x - 6, y - 6); ctx.lineTo(x + 6, y + 6);
+    ctx.moveTo(x + 6, y - 6); ctx.lineTo(x - 6, y + 6);
+    ctx.stroke();
+  } else {
+    ctx.beginPath();
+    ctx.arc(x, y, 3.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function renderSandbox(dt) {
+  const W = sbCanvas.width, H = sbCanvas.height;
+  sbCtx.clearRect(0, 0, W, H);
+
+  const scene = state.sandboxScene;
+  const isEn = state.lang === 'en';
+
+  if (scene === 'motor') {
+    const m = state.sbMotor;
+    if (m.running) m.angle = (m.angle + dt * 1.45) % (Math.PI * 2);
+
+    // Magnets: Left vs Right
+    const leftPole = m.magnetFlip === 1 ? 'N' : 'S';
+    const rightPole = m.magnetFlip === 1 ? 'S' : 'N';
+    sbCtx.fillStyle = leftPole === 'N' ? '#dc2626' : '#2563eb';
+    sbCtx.fillRect(55, 110, 75, 210);
+    sbCtx.fillStyle = rightPole === 'N' ? '#dc2626' : '#2563eb';
+    sbCtx.fillRect(W - 130, 110, 75, 210);
+    sbCtx.fillStyle = '#fff';
+    sbCtx.font = 'bold 28px sans-serif';
+    sbCtx.textAlign = 'center';
+    sbCtx.fillText(leftPole, 92, 224);
+    sbCtx.fillText(rightPole, W - 92, 224);
+
+    // Magnetic field lines N -> S
+    const bSign = m.magnetFlip; // +1: Right, -1: Left
+    for (let y = 140; y <= 290; y += 50) {
+      drawArrow2D(
+        sbCtx,
+        bSign === 1 ? 145 : W - 145, y,
+        bSign === 1 ? W - 145 : 145, y,
+        'rgba(56, 189, 248, 0.35)', 2
+      );
+    }
+    sbCtx.fillStyle = '#38bdf8';
+    sbCtx.font = 'bold 14px sans-serif';
+    sbCtx.fillText('B (N → S)', W * 0.5, 92);
+
+    // Rotating Rectangular Coil (perspective projection around vertical/Z-axis looking from front)
+    const cx = W * 0.5, cy = 215, radiusX = 165, tiltY = 56;
+    const cosA = Math.cos(m.angle);
+    const sinA = Math.sin(m.angle);
+    // Side 1 (red label AB) & Side 2 (cyan label CD)
+    const x1 = cx - radiusX * cosA, y1 = cy + tiltY * sinA;
+    const x2 = cx + radiusX * cosA, y2 = cy - tiltY * sinA;
+
+    // Split-ring commutator + Brushes at bottom
+    sbCtx.strokeStyle = '#94a3b8';
+    sbCtx.lineWidth = 3;
+    sbCtx.strokeRect(cx - 80, 388, 160, 48);
+    // Battery symbol
+    sbCtx.fillStyle = '#090e1c';
+    sbCtx.fillRect(cx - 14, 422, 28, 24);
+    sbCtx.strokeStyle = '#fbbf24';
+    sbCtx.lineWidth = 4;
+    sbCtx.beginPath(); sbCtx.moveTo(cx - 6, 418); sbCtx.lineTo(cx - 6, 450); sbCtx.stroke();
+    sbCtx.lineWidth = 2;
+    sbCtx.beginPath(); sbCtx.moveTo(cx + 6, 426); sbCtx.lineTo(cx + 6, 442); sbCtx.stroke();
+    sbCtx.fillStyle = '#fbbf24';
+    sbCtx.font = 'bold 13px sans-serif';
+    sbCtx.fillText(m.polarity === 1 ? '+   -' : '-   +', cx, 412);
+
+    // Draw coil loop
+    sbCtx.strokeStyle = '#e2e8f0';
+    sbCtx.lineWidth = 7;
+    sbCtx.beginPath();
+    sbCtx.moveTo(x1, y1 - 70);
+    sbCtx.lineTo(x1, y1 + 70);
+    sbCtx.lineTo(x2, y2 + 70);
+    sbCtx.lineTo(x2, y2 - 70);
+    sbCtx.closePath();
+    sbCtx.stroke();
+
+    // Commutator reverses current in AB & CD every half turn so left-side current stays consistent!
+    const leftSideIsAB = cosA >= 0;
+    const leftX = leftSideIsAB ? x1 : x2;
+    const leftY = leftSideIsAB ? y1 : y2;
+    const rightX = leftSideIsAB ? x2 : x1;
+    const rightY = leftSideIsAB ? y2 : y1;
+
+    // Current on left side: if polarity=+1, into page (-Z); right side: out of page (+Z)
+    const iLeftInto = m.polarity === 1;
+    drawFieldSymbol(sbCtx, leftX, leftY, iLeftInto ? 'into' : 'out', '#fbbf24');
+    drawFieldSymbol(sbCtx, rightX, rightY, iLeftInto ? 'out' : 'into', '#fbbf24');
+
+    // Compute exact Force F = I x B on Left and Right sides:
+    // B = (bSign, 0, 0). Left I = (0, 0, iLeftInto ? -1 : 1).
+    // (0,0,iz) x (bx, 0, 0) => Fy = iz * bx!
+    const fyLeft = (iLeftInto ? -1 : 1) * bSign; // +1 = Up (+Y world -> -Y canvas), -1 = Down
+    const deadSpot = Math.abs(cosA) < 0.08;
+    if (!deadSpot) {
+      drawArrow2D(sbCtx, leftX, leftY, leftX, leftY - fyLeft * 75, '#ff5c6c', 4, 'F');
+      drawArrow2D(sbCtx, rightX, rightY, rightX, rightY + fyLeft * 75, '#ff5c6c', 4, 'F');
+    }
+
+    sbCtx.fillStyle = '#cbd5e1';
+    sbCtx.font = 'bold 14px sans-serif';
+    sbCtx.fillText(leftSideIsAB ? 'AB' : 'CD', leftX - 24, leftY - 82);
+    sbCtx.fillText(leftSideIsAB ? 'CD' : 'AB', rightX + 24, rightY - 82);
+    sbCtx.textAlign = 'left';
+
+    const insightEl = document.getElementById('sandbox-insight');
+    const dirWord = fyLeft < 0
+      ? (isEn ? 'Counter-Clockwise (Left side Down, Right side Up)' : '逆時針轉動（左側受力向下 ↓，右側受力向上 ↑）')
+      : (isEn ? 'Clockwise (Left side Up, Right side Down)' : '順時針轉動（左側受力向上 ↑，右側受力向下 ↓）');
+    insightEl.textContent = deadSpot
+      ? (isEn ? 'Vertical Dead-Spot (90°): Split-ring commutator briefly breaks circuit; momentum carries coil past vertical and reverses coil current!' : '線圈轉到豎直位置：換向器短暫斷開並反轉線圈內電流，靠慣性越過平衡位置後繼續同一方向旋轉！')
+      : (isEn ? `Fleming's Left-Hand Rule → ${dirWord}.` : `左手定則判斷：${dirWord}。`);
+  } else if (scene === 'generator') {
+    const g = state.sbGen;
+    if (g.auto) {
+      g.phase += dt * 1.8;
+      g.rodX = Math.sin(g.phase) * 140;
+      g.dir = Math.cos(g.phase) >= 0 ? 1 : -1;
+    }
+
+    // Uniform B-field grid
+    for (let x = 220; x <= 680; x += 65) {
+      for (let y = 75; y <= 345; y += 65) {
+        drawFieldSymbol(sbCtx, x, y, g.magnetDir, 'rgba(56, 189, 248, 0.45)');
+      }
+    }
+    sbCtx.fillStyle = '#38bdf8';
+    sbCtx.font = 'bold 14px sans-serif';
+    sbCtx.fillText(g.magnetDir === 'into' ? 'B (⊗ Into page)' : 'B (⊙ Out of page)', 225, 42);
+
+    // U-shaped rails + Galvanometer on left
+    sbCtx.strokeStyle = '#94a3b8';
+    sbCtx.lineWidth = 5;
+    sbCtx.beginPath();
+    sbCtx.moveTo(690, 130); sbCtx.lineTo(130, 130);
+    sbCtx.lineTo(130, 310); sbCtx.lineTo(690, 310);
+    sbCtx.stroke();
+
+    // Galvanometer circle
+    sbCtx.fillStyle = '#131b31';
+    sbCtx.strokeStyle = '#e2e8f0';
+    sbCtx.lineWidth = 3;
+    sbCtx.beginPath(); sbCtx.arc(130, 220, 36, 0, Math.PI * 2); sbCtx.fill(); sbCtx.stroke();
+    // Moving rod
+    const rx = 450 + g.rodX;
+    sbCtx.strokeStyle = '#e2e8f0';
+    sbCtx.lineWidth = 10;
+    sbCtx.beginPath(); sbCtx.moveTo(rx, 115); sbCtx.lineTo(rx, 325); sbCtx.stroke();
+
+    // Physics: v = (g.dir, 0, 0), B = (0, 0, bZ). Induced I = v x B.
+    const bZ = g.magnetDir === 'into' ? -1 : 1;
+    const speed = g.auto ? Math.abs(Math.cos(g.phase)) : 1;
+    const iY = speed > 0.08 ? g.dir * (-bZ) : 0; // +X x (-Z) = +Y (Up)
+
+    // Galvanometer needle
+    const needleAng = -Math.PI / 2 + (iY * speed) * 0.8;
+    sbCtx.strokeStyle = '#fbbf24';
+    sbCtx.lineWidth = 3;
+    sbCtx.beginPath();
+    sbCtx.moveTo(130, 228);
+    sbCtx.lineTo(130 + Math.cos(needleAng) * 26, 228 + Math.sin(needleAng) * 26);
+    sbCtx.stroke();
+    sbCtx.fillStyle = '#fff';
+    sbCtx.font = 'bold 13px sans-serif';
+    sbCtx.fillText('G', 124, 249);
+
+    if (speed > 0.08) {
+      drawArrow2D(sbCtx, rx, 220, rx + g.dir * 75, 220, '#ff5c6c', 4, 'v');
+      drawArrow2D(sbCtx, rx, 220, rx, 220 - iY * 75, '#fbbf24', 4, 'I');
+    }
+
+    const insightEl = document.getElementById('sandbox-insight');
+    if (speed <= 0.08) {
+      insightEl.textContent = isEn ? 'Rod momentarily at rest (v = 0) → No flux cut → Induced current I = 0.' : '金屬棒瞬間靜止（v = 0）→ 沒有切割磁感線 → 感應電流 I = 0。';
+    } else {
+      const vTxt = g.dir > 0 ? (isEn ? 'Right' : '向右') : (isEn ? 'Left' : '向左');
+      const iTxt = iY > 0 ? (isEn ? 'UP ↑ (Counter-Clockwise loop)' : '向上 ↑（迴路逆時針電流）') : (isEn ? 'DOWN ↓ (Clockwise loop)' : '向下 ↓（迴路順時針電流）');
+      insightEl.textContent = isEn
+        ? `Fleming's Right-Hand Rule: Motion v = ${vTxt}, B = ${g.magnetDir} → Induced Current I = ${iTxt}.`
+        : `右手定則判斷：運動方向 v ${vTxt}，磁場 ${g.magnetDir === 'into' ? '⊗ 射入' : '⊙ 射出'} → 感應電流 ${iTxt}。`;
+    }
+  } else if (scene === 'particle') {
+    const p = state.sbPart;
+    p.t = (p.t + dt * 0.55) % 1;
+
+    // B-field region on right half
+    sbCtx.fillStyle = 'rgba(56, 189, 248, 0.06)';
+    sbCtx.fillRect(280, 45, 480, 370);
+    sbCtx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+    sbCtx.strokeRect(280, 45, 480, 370);
+    for (let x = 320; x <= 730; x += 65) {
+      for (let y = 80; y <= 385; y += 65) {
+        drawFieldSymbol(sbCtx, x, y, p.fieldDir, 'rgba(56, 189, 248, 0.45)');
+      }
+    }
+
+    const q = p.type === 'proton' ? 1 : (p.type === 'electron' ? -1 : 0);
+    const bZ = p.fieldDir === 'into' ? -1 : 1;
+    // Entry at (280, 230) moving Right (+X).
+    // F = q (v x B) = q * ((+X) x (bZ * +Z)) = q * (-bZ) * (+Y world -> -Y canvas!)
+    const bendUp = q * (-bZ); // +1 = curves UP on screen, -1 = curves DOWN, 0 = straight
+
+    // Trajectory path
+    sbCtx.strokeStyle = q === 1 ? '#f43f5e' : (q === -1 ? '#38bdf8' : '#94a3b8');
+    sbCtx.lineWidth = 3;
+    sbCtx.setLineDash([6, 5]);
+    sbCtx.beginPath();
+    sbCtx.moveTo(80, 230);
+    sbCtx.lineTo(280, 230);
+    const R = 145;
+    if (bendUp === 0) {
+      sbCtx.lineTo(720, 230);
+    } else {
+      const cyArc = bendUp > 0 ? 230 - R : 230 + R;
+      const startA = bendUp > 0 ? Math.PI * 0.5 : -Math.PI * 0.5;
+      const endA = bendUp > 0 ? -Math.PI * 0.15 : Math.PI * 0.15;
+      sbCtx.arc(280, cyArc, R, startA, endA, bendUp > 0);
+    }
+    sbCtx.stroke();
+    sbCtx.setLineDash([]);
+
+    // Particle animated position
+    let px, py, vx = 1, vy = 0;
+    if (p.t < 0.32) {
+      px = 80 + (p.t / 0.32) * 200;
+      py = 230;
+    } else {
+      const u = (p.t - 0.32) / 0.68;
+      if (bendUp === 0) {
+        px = 280 + u * 440;
+        py = 230;
+      } else {
+        const cyArc = bendUp > 0 ? 230 - R : 230 + R;
+        const startA = bendUp > 0 ? Math.PI * 0.5 : -Math.PI * 0.5;
+        const sweep = bendUp > 0 ? -Math.PI * 0.65 : Math.PI * 0.65;
+        const ang = startA + u * sweep;
+        px = 280 + R * Math.cos(ang);
+        py = cyArc + R * Math.sin(ang);
+        vx = bendUp > 0 ? Math.sin(ang) : -Math.sin(ang);
+        vy = bendUp > 0 ? -Math.cos(ang) : Math.cos(ang); // screen dy
+      }
+    }
+
+    sbCtx.fillStyle = q === 1 ? '#fb7185' : (q === -1 ? '#38bdf8' : '#cbd5e1');
+    sbCtx.beginPath(); sbCtx.arc(px, py, 11, 0, Math.PI * 2); sbCtx.fill();
+    sbCtx.fillStyle = '#090e1c';
+    sbCtx.font = 'bold 12px sans-serif';
+    sbCtx.textAlign = 'center';
+    sbCtx.fillText(q === 1 ? '+' : (q === -1 ? 'e⁻' : 'n'), px, py + 4);
+    sbCtx.textAlign = 'left';
+
+    // Vectors inside B-field
+    if (p.t >= 0.32) {
+      drawArrow2D(sbCtx, px, py, px + vx * 55, py + vy * 55, '#94a3b8', 2.5, 'v');
+      if (q !== 0) {
+        const ix = q * vx, iy = q * vy;
+        drawArrow2D(sbCtx, px, py, px + ix * 55, py + iy * 55, '#fbbf24', 3, 'I');
+        // Centripetal force pointing toward arc center
+        const cyArc = bendUp > 0 ? 230 - R : 230 + R;
+        const fx = 280 - px, fy = cyArc - py;
+        const fl = Math.hypot(fx, fy) || 1;
+        drawArrow2D(sbCtx, px, py, px + (fx / fl) * 65, py + (fy / fl) * 65, '#ff5c6c', 3.5, 'F');
+      }
+    }
+
+    const insightEl = document.getElementById('sandbox-insight');
+    if (q === 0) {
+      insightEl.textContent = isEn ? 'Neutron / γ-ray has zero charge → No current I → Un-deflected straight line!' : '中子 / γ 射線不帶電（q = 0）→ 不受磁力 → 直線穿過磁場！';
+    } else if (q === -1) {
+      insightEl.textContent = isEn
+        ? `TRAP! Electron moves Right, so Conventional Current I (Second finger) points LEFT! Left-hand rule → curves ${bendUp > 0 ? 'UPWARD' : 'DOWNWARD'}.`
+        : `DSE 必考坑！電子向右運動，但中指（傳統電流 I）必須指向左邊！再用左手定則，粒子向${bendUp > 0 ? '上' : '下'}偏轉。`;
+    } else {
+      insightEl.textContent = isEn
+        ? `Proton (+q) moves Right → Current I also points Right. Left-hand rule → curves ${bendUp > 0 ? 'UPWARD' : 'DOWNWARD'}.`
+        : `質子 / α 粒子帶正電，傳統電流 I 與運動方向相同（向右）→ 左手定則判斷向${bendUp > 0 ? '上' : '下'}偏轉。`;
+    }
+  } else {
+    // Grip scene: Wire vs Solenoid + compass
+    const gs = state.sbGrip;
+    const cx = W * 0.5, cy = H * 0.5;
+    if (gs.mode === 'wire') {
+      // Straight wire perpendicular to page at center
+      drawFieldSymbol(sbCtx, cx, cy, gs.wireDir, '#fbbf24');
+      sbCtx.fillStyle = '#fbbf24';
+      sbCtx.font = 'bold 14px sans-serif';
+      sbCtx.fillText(gs.wireDir === 'out' ? 'I (⊙ Out)' : 'I (⊗ Into)', cx + 18, cy + 5);
+
+      const ccw = gs.wireDir === 'out';
+      for (const r of [75, 130, 185]) {
+        sbCtx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
+        sbCtx.lineWidth = 2;
+        sbCtx.beginPath(); sbCtx.arc(cx, cy, r, 0, Math.PI * 2); sbCtx.stroke();
+        // Tangential arrowheads at top and bottom
+        const dir = ccw ? -1 : 1; // top tangent: ccw -> left (-1)
+        drawArrow2D(sbCtx, cx - dir * 10, cy - r, cx + dir * 16, cy - r, '#38bdf8', 3);
+        drawArrow2D(sbCtx, cx + dir * 10, cy + r, cx - dir * 16, cy + r, '#38bdf8', 3);
+      }
+      // Small compass at right (cx + 130, cy)
+      const compX = cx + 130, compY = cy;
+      sbCtx.fillStyle = '#131b31';
+      sbCtx.strokeStyle = '#94a3b8';
+      sbCtx.lineWidth = 2;
+      sbCtx.beginPath(); sbCtx.arc(compX, compY, 22, 0, Math.PI * 2); sbCtx.fill(); sbCtx.stroke();
+      // At right (+X), ccw points UP (-Y canvas), cw points DOWN (+Y canvas)
+      drawArrow2D(sbCtx, compX, compY + (ccw ? 14 : -14), compX, compY + (ccw ? -14 : 14), '#ef4444', 4, 'N');
+      document.getElementById('sandbox-insight').textContent = isEn
+        ? `Right-Hand Grip Rule: Thumb ${gs.wireDir === 'out' ? 'Out (⊙)' : 'Into (⊗)'} → B-field loops ${ccw ? 'Counter-Clockwise' : 'Clockwise'}; compass at right points ${ccw ? 'UP' : 'DOWN'}.`
+        : `右手握拳定則：拇指${gs.wireDir === 'out' ? '指向自己 ⊙' : '指入紙面 ⊗'} → 四指呈${ccw ? '逆時針' : '順時針'}方向，右側小磁針 N 極指向${ccw ? '上方 ↑' : '下方 ↓'}！`;
+    } else {
+      // Solenoid
+      const northLeft = gs.solFront === 'up';
+      sbCtx.fillStyle = '#334155';
+      sbCtx.fillRect(230, 165, 360, 120);
+      for (let x = 255; x <= 565; x += 38) {
+        sbCtx.strokeStyle = '#f59e0b';
+        sbCtx.lineWidth = 5;
+        sbCtx.beginPath();
+        sbCtx.moveTo(x, 155); sbCtx.lineTo(x, 295);
+        sbCtx.stroke();
+        drawArrow2D(sbCtx, x, northLeft ? 260 : 190, x, northLeft ? 190 : 260, '#fbbf24', 3);
+      }
+      // N & S pole badges
+      sbCtx.fillStyle = northLeft ? '#ef4444' : '#3b82f6';
+      sbCtx.fillRect(150, 195, 58, 58);
+      sbCtx.fillStyle = northLeft ? '#3b82f6' : '#ef4444';
+      sbCtx.fillRect(612, 195, 58, 58);
+      sbCtx.fillStyle = '#fff';
+      sbCtx.font = 'bold 28px sans-serif';
+      sbCtx.textAlign = 'center';
+      sbCtx.fillText(northLeft ? 'N' : 'S', 179, 234);
+      sbCtx.fillText(northLeft ? 'S' : 'N', 641, 234);
+      sbCtx.textAlign = 'left';
+
+      // Internal B-field arrow
+      drawArrow2D(sbCtx, northLeft ? 540 : 280, 225, northLeft ? 280 : 540, 225, '#38bdf8', 4, 'B');
+      document.getElementById('sandbox-insight').textContent = isEn
+        ? `Right-Hand Grip Rule: Curl 4 fingers ${northLeft ? 'UP' : 'DOWN'} on front face → Thumb points ${northLeft ? 'LEFT (North on Left)' : 'RIGHT (North on Right)'}.`
+        : `右手握拳定則：四指在線圈前方${northLeft ? '向上' : '向下'}握住 → 右手拇指指向${northLeft ? '左邊（左端為 N 極）' : '右邊（右端為 N 極）'}。`;
+    }
+  }
+}
+
+function buildSandboxControls() {
+  const box = document.getElementById('sandbox-controls');
+  const isEn = state.lang === 'en';
+  const els = [];
+
+  function makeBtn(label, active, onClick) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = `sb-btn${active ? ' active' : ''}`;
+    b.textContent = label;
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  if (state.sandboxScene === 'motor') {
+    const m = state.sbMotor;
+    els.push(makeBtn(m.running ? (isEn ? 'Pause' : '暫停轉動') : (isEn ? 'Run' : '繼續轉動'), false, () => {
+      m.running = !m.running; buildSandboxControls();
+    }));
+    els.push(makeBtn(isEn ? 'Reverse Battery (+/-)' : '反轉電池正負極', m.polarity === -1, () => {
+      m.polarity *= -1; buildSandboxControls();
+    }));
+    els.push(makeBtn(isEn ? 'Swap N/S Magnets' : '對調磁鐵 N/S 極', m.magnetFlip === -1, () => {
+      m.magnetFlip *= -1; buildSandboxControls();
+    }));
+  } else if (state.sandboxScene === 'generator') {
+    const g = state.sbGen;
+    els.push(makeBtn(g.auto ? (isEn ? 'Manual Mode' : '切換手動推拉') : (isEn ? 'Auto Oscillate' : '自動往復切割'), g.auto, () => {
+      g.auto = !g.auto; buildSandboxControls();
+    }));
+    if (!g.auto) {
+      els.push(makeBtn(isEn ? 'Move Left ←' : '向左移動 ←', g.dir === -1, () => { g.dir = -1; g.rodX = Math.max(-130, g.rodX - 30); buildSandboxControls(); }));
+      els.push(makeBtn(isEn ? 'Move Right →' : '向右移動 →', g.dir === 1, () => { g.dir = 1; g.rodX = Math.min(130, g.rodX + 30); buildSandboxControls(); }));
+    }
+    els.push(makeBtn(g.magnetDir === 'into' ? 'B: ⊗ Into' : 'B: ⊙ Out', false, () => {
+      g.magnetDir = g.magnetDir === 'into' ? 'out' : 'into'; buildSandboxControls();
+    }));
+  } else if (state.sandboxScene === 'particle') {
+    const p = state.sbPart;
+    els.push(makeBtn(isEn ? 'Proton (+)' : '質子 (+)', p.type === 'proton', () => { p.type = 'proton'; p.t = 0; buildSandboxControls(); }));
+    els.push(makeBtn(isEn ? 'Electron (e⁻)' : '電子 (e⁻)', p.type === 'electron', () => { p.type = 'electron'; p.t = 0; buildSandboxControls(); }));
+    els.push(makeBtn(isEn ? 'Neutron (0)' : '中子 (不帶電)', p.type === 'neutron', () => { p.type = 'neutron'; p.t = 0; buildSandboxControls(); }));
+    els.push(makeBtn(p.fieldDir === 'into' ? 'B: ⊗ Into' : 'B: ⊙ Out', false, () => {
+      p.fieldDir = p.fieldDir === 'into' ? 'out' : 'into'; p.t = 0; buildSandboxControls();
+    }));
+  } else {
+    const gs = state.sbGrip;
+    els.push(makeBtn(isEn ? 'Straight Wire' : '直導線', gs.mode === 'wire', () => { gs.mode = 'wire'; buildSandboxControls(); }));
+    els.push(makeBtn(isEn ? 'Solenoid' : '螺線管', gs.mode === 'solenoid', () => { gs.mode = 'solenoid'; buildSandboxControls(); }));
+    if (gs.mode === 'wire') {
+      els.push(makeBtn(gs.wireDir === 'out' ? 'I: ⊙ Out' : 'I: ⊗ Into', false, () => {
+        gs.wireDir = gs.wireDir === 'out' ? 'into' : 'out'; buildSandboxControls();
+      }));
+    } else {
+      els.push(makeBtn(gs.solFront === 'up' ? (isEn ? 'Front I: UP ↑' : '前方電流：向上 ↑') : (isEn ? 'Front I: DOWN ↓' : '前方電流：向下 ↓'), false, () => {
+        gs.solFront = gs.solFront === 'up' ? 'down' : 'up'; buildSandboxControls();
+      }));
+    }
+  }
+
+  box.replaceChildren(...els);
+}
+
+// --- 7. Tab 3: Diagnostic Quiz (8 DSE Questions) ---
+const QUIZ_BANK = [
+  {
+    tag: { 'zh-HK': '弗萊明左手定則 · 基礎', 'zh-CN': '弗莱明左手定则 · 基础', en: "Fleming's Left-Hand Rule" },
+    q: {
+      'zh-HK': '一條水平導線通有向右的電流 I，置於射入紙面 (⊗) 的勻強磁場中。導線所受的磁力方向為何？',
+      'zh-CN': '一条水平导线通有向右的电流 I，置于射入纸面 (⊗) 的匀强磁场中。导线所受的磁力方向为何？',
+      en: 'A horizontal wire carries current I to the RIGHT in a uniform magnetic field directed INTO the page (⊗). What is the direction of the magnetic force on the wire?'
+    },
+    // Verify: I = +X, B = -Z => F = (+X) x (-Z) = +Y (Up)
+    opts: [
+      { key: 'up', label: { 'zh-HK': '向上 ↑', 'zh-CN': '向上 ↑', en: 'Upward ↑' }, correct: true, diag: { 'zh-HK': '正確！伸出左手：食指(B)射入紙面，中指(I)向右，拇指(F)指向上方。', 'zh-CN': '正确！伸出左手：食指(B)射入纸面，中指(I)向右，拇指(F)指向上方。', en: 'Correct! Left hand: First(B) into page, Second(I) right → Thumb(F) points UP.' } },
+      { key: 'down', label: { 'zh-HK': '向下 ↓', 'zh-CN': '向下 ↓', en: 'Downward ↓' }, correct: false, diag: { 'zh-HK': '錯因診斷：你是不是伸了「右手」？通電導線在磁場受力是電動機效應，必須用左手！', 'zh-CN': '错因诊断：你是不是伸了「右手」？通电导线在磁场受力是电动机效应，必须用左手！', en: 'Diagnostic: Did you use your RIGHT hand? Force on a current-carrying wire requires the LEFT-hand rule!' } },
+      { key: 'out', label: { 'zh-HK': '射出紙面 ⊙', 'zh-CN': '射出纸面 ⊙', en: 'Out of page ⊙' }, correct: false, diag: { 'zh-HK': '錯因診斷：磁場已經沿著前後方向 (⊗)，磁力必須同時垂直於 B 和 I，不可能射出紙面。', 'zh-CN': '错因诊断：磁场已经沿着前后方向 (⊗)，磁力必须同时垂直于 B 和 I，不可能射出纸面。', en: 'Diagnostic: Force must be perpendicular to both B and I (so it cannot lie along the into/out axis).' } },
+      { key: 'zero', label: { 'zh-HK': '不受磁力 (0)', 'zh-CN': '不受磁力 (0)', en: 'Zero force' }, correct: false, diag: { 'zh-HK': '錯因診斷：I 向右而 B 射入紙面，兩者互相垂直 90°，磁力為最大值而非零。', 'zh-CN': '错因诊断：I 向右而 B 射入纸面，两者互相垂直 90°，磁力为最大值而非零。', en: 'Diagnostic: I and B are perpendicular (90°), so magnetic force is at maximum, not zero.' } }
+    ],
+    draw: (ctx, w, h) => {
+      for (let x = 70; x <= 370; x += 65) for (let y = 55; y <= 265; y += 65) drawFieldSymbol(ctx, x, y, 'into', 'rgba(56,189,248,0.45)');
+      ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 8;
+      ctx.beginPath(); ctx.moveTo(60, h / 2); ctx.lineTo(w - 60, h / 2); ctx.stroke();
+      drawArrow2D(ctx, 160, h / 2, 290, h / 2, '#fbbf24', 4, 'I');
+      ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 14px sans-serif'; ctx.fillText('B (⊗)', 25, 30);
+    }
+  },
+  {
+    tag: { 'zh-HK': 'DSE 必考坑 · β 電子偏轉', 'zh-CN': 'DSE 必考坑 · β 电子偏转', en: 'DSE Trap · Electron Deflection' },
+    q: {
+      'zh-HK': '一束 β 粒子（高速電子）向右射入「射出紙面 (⊙)」的磁場中，電子會向哪個方向偏轉？',
+      'zh-CN': '一束 β 粒子（高速电子）向右射入「射出纸面 (⊙)」的磁场中，电子会向哪个方向偏转？',
+      en: 'A beam of β-particles (electrons) enters a magnetic field directed OUT of the page (⊙) moving to the RIGHT. Which way does it deflect?'
+    },
+    // Verify: Electron moves Right (+X) => I = Left (-X). B = +Z (Out).
+    // F = I x B = (-X) x (+Z) = +Y (Up)!
+    opts: [
+      { key: 'up', label: { 'zh-HK': '向上偏轉 ↑', 'zh-CN': '向上偏转 ↑', en: 'Deflects Upward ↑' }, correct: true, diag: { 'zh-HK': '漂亮避坑！電子向右 => 傳統電流 I 向左；左手食指指向自己 (⊙)、中指向左 → 拇指向上 ↑！', 'zh-CN': '漂亮避坑！电子向右 => 传统电流 I 向左；左手食指指向自己 (⊙)、中指向左 → 拇指向上 ↑！', en: 'Great catch! Electron right ⇒ I points LEFT. Left hand: First(B) out, Second(I) left → Thumb(F) UP!' } },
+      { key: 'down', label: { 'zh-HK': '向下偏轉 ↓', 'zh-CN': '向下偏转 ↓', en: 'Deflects Downward ↓' }, correct: false, diag: { 'zh-HK': '經典陷阱！你忘記了 β 粒子是帶負電的電子，中指（傳統電流 I）必須指向運動方向的「反方向」（向左）！', 'zh-CN': '经典陷阱！你忘记了 β 粒子是带负电的电子，中指（传统电流 I）必须指向运动方向的「反方向」（向左）！', en: 'Classic trap! β-particles are negative electrons, so Second finger (I) must point OPPOSITE to motion (Left)!' } },
+      { key: 'into', label: { 'zh-HK': '射入紙面 ⊗', 'zh-CN': '射入纸面 ⊗', en: 'Into the page ⊗' }, correct: false, diag: { 'zh-HK': '錯因診斷：力必須同時垂直於磁場 B (前後) 與速度 v (左右)，只可能在上下方向偏轉。', 'zh-CN': '错因诊断：力必须同时垂直于磁场 B (前后) 与速度 v (左右)，只可能在上下方向偏转。', en: 'Diagnostic: Force is perpendicular to both B (z-axis) and v (x-axis), so it must lie along the y-axis.' } },
+      { key: 'straight', label: { 'zh-HK': '不偏轉（直線通過）', 'zh-CN': '不偏转（直线通过）', en: 'No deflection' }, correct: false, diag: { 'zh-HK': '錯因診斷：β 粒子帶負電，只有 γ 射線或中子才不帶電且不偏轉。', 'zh-CN': '错因诊断：β 粒子带负电，只有 γ 射线或中子才不带电且不偏转。', en: 'Diagnostic: β-particles are charged! Only neutral particles/γ-rays pass straight through.' } }
+    ],
+    draw: (ctx, w, h) => {
+      for (let x = 180; x <= 390; x += 65) for (let y = 55; y <= 265; y += 65) drawFieldSymbol(ctx, x, y, 'out', 'rgba(56,189,248,0.45)');
+      drawArrow2D(ctx, 40, h / 2, 165, h / 2, '#38bdf8', 4, 'e⁻ (β)');
+      ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 14px sans-serif'; ctx.fillText('B (⊙)', 190, 30);
+    }
+  },
+  {
+    tag: { 'zh-HK': '弗萊明右手定則 · 電磁感應', 'zh-CN': '弗莱明右手定则 · 电磁感应', en: "Fleming's Right-Hand Rule" },
+    q: {
+      'zh-HK': '金屬棒 PQ 置於「射入紙面 (⊗)」的磁場中，並被外力向右拉動 (v)。棒內感應電流的方向為何？',
+      'zh-CN': '金属棒 PQ 置于「射入纸面 (⊗)」的磁场中，并被外力向右拉动 (v)。棒内感应电流的方向为何？',
+      en: 'A metal rod PQ is pulled to the RIGHT (v) in a magnetic field directed INTO the page (⊗). What is the direction of induced current in PQ?'
+    },
+    // Verify: v = +X, B = -Z => I = v x B = (+X) x (-Z) = +Y (Q -> P, Up)
+    opts: [
+      { key: 'up', label: { 'zh-HK': '向上（由 Q 流向 P）↑', 'zh-CN': '向上（由 Q 流向 P）↑', en: 'Upward (Q to P) ↑' }, correct: true, diag: { 'zh-HK': '正確！運動切割生電用「右手」：拇指(v)向右，食指(B)射入紙面，中指(I)向上 ↑！', 'zh-CN': '正确！运动切割生电用「右手」：拇指(v)向右，食指(B)射入纸面，中指(I)向上 ↑！', en: 'Correct! Motion inducing current uses RIGHT hand: Thumb(v) right, First(B) into page → Second(I) UP!' } },
+      { key: 'down', label: { 'zh-HK': '向下（由 P 流向 Q）↓', 'zh-CN': '向下（由 P 流向 Q）↓', en: 'Downward (P to Q) ↓' }, correct: false, diag: { 'zh-HK': '錯因診斷：你是不是誤用了「左手」？這題沒有電池，是靠運動切割磁感線生電，要用「右手定則」！', 'zh-CN': '错因诊断：你是不是误用了「左手」？这题没有电池，是靠运动切割磁感线生电，要用「右手定则」！', en: 'Diagnostic: Did you use the LEFT hand? Generating induced current from motion requires the RIGHT-hand rule!' } },
+      { key: 'left', label: { 'zh-HK': '向左 ←', 'zh-CN': '向左 ←', en: 'Left ←' }, correct: false, diag: { 'zh-HK': '錯因診斷：電流只能沿着金屬棒本身的方向（P 與 Q 之間，即上下方向）流動。', 'zh-CN': '错因诊断：电流只能沿着金属棒本身的方向（P 与 Q 之间，即上下方向）流动。', en: 'Diagnostic: Induced current flows along the rod PQ (vertical axis), not horizontally.' } },
+      { key: 'zero', label: { 'zh-HK': '沒有感應電流', 'zh-CN': '没有感应电流', en: 'Zero induced current' }, correct: false, diag: { 'zh-HK': '錯因診斷：金屬棒向右移動時垂直切割 ⊗ 磁感線，一定有感應電動勢（若接成閉合迴路便有感應電流）。', 'zh-CN': '错因诊断：金属棒向右移动时垂直切割 ⊗ 磁感线，一定有感应电动势（若接成闭合回路便有感应电流）。', en: 'Diagnostic: Moving right cuts the ⊗ B-field perpendicularly, inducing current in the closed loop.' } }
+    ],
+    draw: (ctx, w, h) => {
+      for (let x = 150; x <= 390; x += 65) for (let y = 55; y <= 265; y += 65) drawFieldSymbol(ctx, x, y, 'into', 'rgba(56,189,248,0.45)');
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(390, 80); ctx.lineTo(90, 80); ctx.lineTo(90, 240); ctx.lineTo(390, 240); ctx.stroke();
+      ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 9;
+      ctx.beginPath(); ctx.moveTo(260, 72); ctx.lineTo(260, 248); ctx.stroke();
+      drawArrow2D(ctx, 260, 160, 345, 160, '#ff5c6c', 4, 'v');
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 14px sans-serif';
+      ctx.fillText('P', 255, 60); ctx.fillText('Q', 255, 270);
+    }
+  },
+  {
+    tag: { 'zh-HK': '物理概念陷阱 · 平行無力', 'zh-CN': '物理概念陷阱 · 平行无力', en: 'Concept Trap · Parallel Vectors' },
+    q: {
+      'zh-HK': '磁場方向 B 由 N 極指向右方 (→)，一段通電導線的電流 I 也指向右方 (→)。導線受到的磁力方向是？',
+      'zh-CN': '磁场方向 B 由 N 极指向右方 (→)，一段通电导线的电流 I 也指向右方 (→)。导线下受到的磁力方向是？',
+      en: 'Magnetic field B points RIGHT (→), and a wire carries current I also to the RIGHT (→). What is the magnetic force on the wire?'
+    },
+    opts: [
+      { key: 'zero', label: { 'zh-HK': '沒有磁力 (F = 0)', 'zh-CN': '没有磁力 (F = 0)', en: 'Zero force (F = 0)' }, correct: true, diag: { 'zh-HK': '滿分警覺！I 與 B 互相平行（0°），弗萊明左手定則只適用於垂直分量，平行時不受磁力！', 'zh-CN': '满分警觉！I 与 B 互相平行（0°），弗莱明左手定则只适用于垂直分量，平行时不受磁力！', en: 'Spot on! I and B are parallel (0°), so magnetic force is zero!' } },
+      { key: 'out', label: { 'zh-HK': '射出紙面 ⊙', 'zh-CN': '射出纸面 ⊙', en: 'Out of page ⊙' }, correct: false, diag: { 'zh-HK': '錯因診斷：沒有用左手檢查三指垂直條件！食指和中指都指向右，無法構成正交三指，磁力為零。', 'zh-CN': '错因诊断：没有用左手检查三指垂直条件！食指和中指都指向右，无法构成正交三指，磁力为零。', en: 'Diagnostic: B and I are parallel, so you cannot form perpendicular fingers — force is zero!' } },
+      { key: 'up', label: { 'zh-HK': '向上 ↑', 'zh-CN': '向上 ↑', en: 'Upward ↑' }, correct: false, diag: { 'zh-HK': '錯因診斷：當電流平行於磁場線時（0° 或 180°），磁力永遠是零。', 'zh-CN': '错因诊断：当电流平行于磁场线时（0° 或 180°），磁力永远是零。', en: 'Diagnostic: Parallel current and B-field always produce zero magnetic force.' } },
+      { key: 'down', label: { 'zh-HK': '向下 ↓', 'zh-CN': '向下 ↓', en: 'Downward ↓' }, correct: false, diag: { 'zh-HK': '錯因診斷：當電流平行於磁場線時（0° 或 180°），磁力永遠是零。', 'zh-CN': '错因诊断：当电流平行于磁场线时（0° 或 180°），磁力永远是零。', en: 'Diagnostic: Parallel current and B-field always produce zero magnetic force.' } }
+    ],
+    draw: (ctx, w, h) => {
+      for (let y = 80; y <= 240; y += 80) drawArrow2D(ctx, 80, y, 360, y, 'rgba(56,189,248,0.45)', 3);
+      ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 8;
+      ctx.beginPath(); ctx.moveTo(90, h / 2); ctx.lineTo(350, h / 2); ctx.stroke();
+      drawArrow2D(ctx, 160, h / 2, 280, h / 2, '#fbbf24', 4, 'I');
+      ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 14px sans-serif'; ctx.fillText('B →', 90, 55);
+    }
+  },
+  {
+    tag: { 'zh-HK': '右手握拳定則 · 螺線管', 'zh-CN': '右手握拳定则 · 螺线管', en: 'Right-Hand Grip Rule · Solenoid' },
+    q: {
+      'zh-HK': '如圖所示，電流從螺線管前方「向下 (↓)」流動，螺線管的哪一端是北極 (N 極)？',
+      'zh-CN': '如图所示，电流从螺线管前方「向下 (↓)」流动，螺线管的哪一端是北极 (N 极)？',
+      en: 'Current flows DOWNWARD (↓) on the front face of the solenoid shown. Which end becomes the North (N) pole?'
+    },
+    // Verify: Right fingers curl down on front face => Thumb points Right (+X) => Right end is N!
+    opts: [
+      { key: 'right', label: { 'zh-HK': '右端為 N 極', 'zh-CN': '右端为 N 极', en: 'Right end is N' }, correct: true, diag: { 'zh-HK': '正確！用右手握住螺線管，四指順着前方電流「向下」握，右手拇指自然指向右端（N 極）！', 'zh-CN': '正确！用右手握住螺线管，四指顺着前方电流「向下」握，右手拇指自然指向右端（N 极）！', en: 'Correct! Grip with right hand, 4 fingers curling DOWN on the front face → Thumb points RIGHT (N pole).' } },
+      { key: 'left', label: { 'zh-HK': '左端為 N 極', 'zh-CN': '左端为 N 极', en: 'Left end is N' }, correct: false, diag: { 'zh-HK': '錯因診斷：你是不是用了「左手」來握拳？電流產生磁場永遠用「右手」握拳定則！', 'zh-CN': '错因诊断：你是不是用了「左手」来握拳？电流产生磁场永远用「右手」握拳定则！', en: 'Diagnostic: Did you grip with your LEFT hand? Always use the RIGHT hand for the Grip Rule!' } },
+      { key: 'top', label: { 'zh-HK': '上方為 N 極', 'zh-CN': '上方为 N 极', en: 'Top side is N' }, correct: false, diag: { 'zh-HK': '錯因診斷：螺線管的磁極一定位於軸線的左右兩端，而非側面。', 'zh-CN': '错因诊断：螺线管的磁极一定位于轴线的左右两端，而非侧面。', en: 'Diagnostic: Solenoid poles lie at the two ends along its axis, not on the top/bottom side.' } },
+      { key: 'none', label: { 'zh-HK': '兩端都不是 N 極', 'zh-CN': '两端都不是 N 极', en: 'No magnetic poles' }, correct: false, diag: { 'zh-HK': '錯因診斷：通電螺線管等效於一根條形磁鐵，一端為 N 極，另一端為 S 極。', 'zh-CN': '错因诊断：通电螺线管等效于一根条形磁铁，一端为 N 极，另一端为 S 极。', en: 'Diagnostic: A current-carrying solenoid acts like a bar magnet with distinct N and S poles.' } }
+    ],
+    draw: (ctx, w, h) => {
+      ctx.fillStyle = '#334155'; ctx.fillRect(100, 115, 240, 90);
+      for (let x = 120; x <= 320; x += 38) {
+        ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.moveTo(x, 108); ctx.lineTo(x, 212); ctx.stroke();
+        drawArrow2D(ctx, x, 130, x, 190, '#fbbf24', 3);
+      }
+      ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 16px sans-serif';
+      ctx.fillText('X', 72, 166); ctx.fillText('Y', 355, 166);
+    }
+  },
+  {
+    tag: { 'zh-HK': 'DSE 綜合題 · 握拳 + 左手', 'zh-CN': 'DSE 综合题 · 握拳 + 左手', en: 'DSE Combo · Grip + Left-Hand' },
+    q: {
+      'zh-HK': '兩條平行的長直導線均通有「射出紙面 (⊙)」的同向電流。兩條導線之間會互相吸引還是互相排斥？',
+      'zh-CN': '两条平行的长直导线均通有「射出纸面 (⊙)」的同向电流。两条导线之间会互相吸引还是互相排斥？',
+      en: 'Two parallel wires both carry current OUT of the page (⊙). Do they attract or repel each other?'
+    },
+    // Verify: Left wire (+Z) at Right wire (+X): B = (+Z) x (+X) = +Y (Up).
+    // Force on Right wire (+Z) in B (+Y): F = I x B = (+Z) x (+Y) = -X (Left, toward Left wire -> Attract!)
+    opts: [
+      { key: 'attract', label: { 'zh-HK': '互相吸引', 'zh-CN': '互相吸引', en: 'Attract each other' }, correct: true, diag: { 'zh-HK': '完全正確！步驟一：右手握拳得左線在右線處產生「向上」的磁場 B；步驟二：左手定則得右線受力「向左」→ 同向電流相吸！', 'zh-CN': '完全正确！步骤一：右手握拳得左线在右线处产生「向上」的磁场 B；步骤二：左手定则得右线受力「向左」→ 同向电流相吸！', en: 'Correct! 1) Right-hand grip: left wire makes UPWARD B at right wire. 2) Left-hand rule: Force on right wire is LEFT (attract)!' } },
+      { key: 'repel', label: { 'zh-HK': '互相排斥', 'zh-CN': '互相排斥', en: 'Repel each other' }, correct: false, diag: { 'zh-HK': '錯因診斷：容易跟「同性電荷相斥」搞混！導線是「同向電流相吸，反向電流相斥」。再分別用右手握拳求 B 與左手求 F 核對一次！', 'zh-CN': '错因诊断：容易跟「同性电荷相斥」搞混！导线是「同向电流相吸，反向电流相斥」。再分别用右手握拳求 B 与左手求 F 核对一次！', en: 'Diagnostic: Unlike electric charges, parallel currents in the SAME direction attract (use Grip Rule for B, then Left-Hand Rule for F).' } },
+      { key: 'up', label: { 'zh-HK': '兩者同時向上移動', 'zh-CN': '两者同时向上移动', en: 'Both move upward' }, correct: false, diag: { 'zh-HK': '錯因診斷：根據牛頓第三定律，兩條導線受力必定大小相等、方向相反（沿連線方向）。', 'zh-CN': '错因诊断：根据牛顿第三定律，两条导线受力必定大小相等、方向相反（沿连线方向）。', en: "Diagnostic: By Newton's 3rd Law, forces between them are equal and opposite along the line joining them." } },
+      { key: 'none', label: { 'zh-HK': '沒有相互作用力', 'zh-CN': '没有相互作用力', en: 'No force between them' }, correct: false, diag: { 'zh-HK': '錯因診斷：一條通電導線產生的磁場會作用在另一條通電導線上。', 'zh-CN': '错因诊断：一条通电导线产生的磁场会作用在另一条通电导线上。', en: 'Diagnostic: Current 1 creates a B-field that exerts a magnetic force on Current 2.' } }
+    ],
+    draw: (ctx, w, h) => {
+      drawFieldSymbol(ctx, 145, h / 2, 'out', '#fbbf24');
+      drawFieldSymbol(ctx, 295, h / 2, 'out', '#fbbf24');
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 14px sans-serif';
+      ctx.fillText('I₁ (⊙)', 125, h / 2 + 34);
+      ctx.fillText('I₂ (⊙)', 275, h / 2 + 34);
+    }
+  },
+  {
+    tag: { 'zh-HK': '直流電動機 · 換向器', 'zh-CN': '直流电动机 · 换向器', en: 'DC Motor · Rotation' },
+    q: {
+      'zh-HK': '電動機線圈位於 N（左）與 S（右）磁極之間。若左側導線 AB 電流為射入紙面 (⊗)，右側 CD 為射出 (⊙)，從前方看線圈如何轉動？',
+      'zh-CN': '电动机线圈位于 N（左）与 S（右）磁极之间。若左侧导线 AB 电流为射入纸面 (⊗)，右侧 CD 为射出 (⊙)，从前方看线圈如何转动？',
+      en: 'In a motor with N on Left and S on Right, side AB (left) has current INTO page (⊗) and CD (right) has current OUT (⊙). Which way does the coil rotate?'
+    },
+    // Verify: B = +X. AB: I = -Z => F = (-Z) x (+X) = -Y (Down). CD: I = +Z => F = +Y (Up). => Counter-Clockwise!
+    opts: [
+      { key: 'ccw', label: { 'zh-HK': '逆時針轉動 (AB 向下、CD 向上)', 'zh-CN': '逆时针转动 (AB 向下、CD 向上)', en: 'Counter-Clockwise (AB down, CD up)' }, correct: true, diag: { 'zh-HK': '正確！左手定則：B 向右，AB 邊 I 射入 (⊗) → 拇指向下；CD 邊 I 射出 (⊙) → 拇指向上，形成逆時針力偶！', 'zh-CN': '正确！左手定则：B 向右，AB 边 I 射入 (⊗) → 拇指向下；CD 边 I 射出 (⊙) → 拇指向上，形成逆时针力偶！', en: 'Correct! Left-hand rule: B right, AB(⊗) → Force DOWN; CD(⊙) → Force UP → Counter-Clockwise!' } },
+      { key: 'cw', label: { 'zh-HK': '順時針轉動 (AB 向上、CD 向下)', 'zh-CN': '顺时针转动 (AB 向上、CD 向下)', en: 'Clockwise (AB up, CD down)' }, correct: false, diag: { 'zh-HK': '錯因診斷：檢查是否誤用了「右手」，或把 B 的方向搞反了（磁場是 N → S，即由左向右）。', 'zh-CN': '错因诊断：检查是否误用了「右手」，或把 B 的方向搞反了（磁场是 N → S，即由左向右）。', en: 'Diagnostic: Check if you used the Right hand or reversed B (B always points N → S, Left to Right).' } },
+      { key: 'right', label: { 'zh-HK': '整個線圈向右平移', 'zh-CN': '整个线圈向右平移', en: 'Translates to the right' }, correct: false, diag: { 'zh-HK': '錯因診斷：兩邊電流方向相反，受力一上一下，形成力偶 (Couple) 使線圈轉動，而非平移。', 'zh-CN': '错因诊断：两边电流方向相反，受力一上一下，形成力偶 (Couple) 使线圈转动，而非平移。', en: 'Diagnostic: Opposite forces on AB and CD create a turning couple, not net horizontal translation.' } },
+      { key: 'stop', label: { 'zh-HK': '保持靜止不動', 'zh-CN': '保持静止不动', en: 'Remains stationary' }, correct: false, diag: { 'zh-HK': '錯因診斷：電流與磁場互相垂直，兩邊都有最大磁力與最大力矩！', 'zh-CN': '错因诊断：电流与磁场互相垂直，两边都有最大磁力与最大力矩！', en: 'Diagnostic: Wire sides are perpendicular to B, giving maximum torque!' } }
+    ],
+    draw: (ctx, w, h) => {
+      ctx.fillStyle = '#dc2626'; ctx.fillRect(30, 85, 50, 150);
+      ctx.fillStyle = '#2563eb'; ctx.fillRect(w - 80, 85, 50, 150);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 22px sans-serif';
+      ctx.fillText('N', 46, 168); ctx.fillText('S', w - 63, 168);
+      drawArrow2D(ctx, 95, 160, w - 95, 160, 'rgba(56,189,248,0.45)', 2);
+      drawFieldSymbol(ctx, 145, 160, 'into', '#fbbf24');
+      drawFieldSymbol(ctx, w - 145, 160, 'out', '#fbbf24');
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 13px sans-serif';
+      ctx.fillText('AB (⊗)', 122, 136); ctx.fillText('CD (⊙)', w - 168, 136);
+    }
+  },
+  {
+    tag: { 'zh-HK': '右手握拳定則 · 直導線磁針', 'zh-CN': '右手握拳定则 · 直导线磁针', en: 'Right-Hand Grip · Compass' },
+    q: {
+      'zh-HK': '一條豎直導線通有「向上 (↑)」的電流，在導線正後方放一個小磁針。小磁針的 N 極會指向哪邊？',
+      'zh-CN': '一条竖直导线通有「向上 (↑)」的电流，在导线正后方放一个小磁针。小磁针的 N 极会指向哪边？',
+      en: 'A vertical wire carries current UPWARD (↑). A small compass is placed directly BEHIND the wire. Which way does its N pole point?'
+    },
+    // Verify: I = +Y (Up). Behind wire = -Z. B = I x r = (+Y) x (-Z) = -X (Left)!
+    opts: [
+      { key: 'left', label: { 'zh-HK': '向左 ←', 'zh-CN': '向左 ←', en: 'To the Left ←' }, correct: true, diag: { 'zh-HK': '空間感很強！右手拇指向上 (↑)，四指環繞導線：導線前方磁場向右，正後方磁場向左 ←！', 'zh-CN': '空间感很强！右手拇指向上 (↑)，四指环绕导线：导线前方磁场向右，正后方磁场向左 ←！', en: 'Great 3D visualization! Right thumb UP → fingers sweep right in front, and LEFT behind the wire!' } },
+      { key: 'right', label: { 'zh-HK': '向右 →', 'zh-CN': '向右 →', en: 'To the Right →' }, correct: false, diag: { 'zh-HK': '錯因診斷：你算的是導線「正前方」的磁場方向！題目說磁針放在導線「正後方」，方向剛好相反。', 'zh-CN': '错因诊断：你算的是导线「正前方」的磁场方向！题目说磁针放在导线「正后方」，方向刚好相反。', en: 'Diagnostic: Rightward is the B-field IN FRONT of the wire; BEHIND the wire it points Left!' } },
+      { key: 'up', label: { 'zh-HK': '向上 ↑', 'zh-CN': '向上 ↑', en: 'Upward ↑' }, correct: false, diag: { 'zh-HK': '錯因診斷：直導線的磁感線是垂直於導線的水平同心圓，不會沿着導線向上。', 'zh-CN': '错因诊断：直导线的磁感线是垂直于导线的水平同心圆，不会沿着导线向上。', en: 'Diagnostic: Magnetic field lines around a straight wire form horizontal circles perpendicular to the wire.' } },
+      { key: 'into', label: { 'zh-HK': '射入紙面 ⊗', 'zh-CN': '射入纸面 ⊗', en: 'Into the page ⊗' }, correct: false, diag: { 'zh-HK': '錯因診斷：在導線正後方，圓周切線是水平左右方向（而非前後方向）。', 'zh-CN': '错因诊断：在导线正后方，圆周切线是水平左右方向（而非前后方向）。', en: 'Diagnostic: Directly behind the wire, the circle tangent points horizontally (left/right).' } }
+    ],
+    draw: (ctx, w, h) => {
+      ctx.strokeStyle = 'rgba(56,189,248,0.45)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(w / 2, h / 2 + 10, 110, 34, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#94a3b8'; ctx.font = '13px sans-serif'; ctx.fillText('Compass behind wire', w / 2 - 64, h / 2 - 36);
+      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 7;
+      ctx.beginPath(); ctx.moveTo(w / 2, h - 45); ctx.lineTo(w / 2, 45); ctx.stroke();
+      drawArrow2D(ctx, w / 2, h / 2 + 40, w / 2, h / 2 - 50, '#fbbf24', 4, 'I ↑');
+    }
+  }
+];
+
+function renderQuiz() {
+  const qData = QUIZ_BANK[state.quizIndex];
+  const t = I18N[state.lang];
+  const lang = state.lang;
+
+  document.getElementById('quiz-tag').textContent = qData.tag[lang];
+  document.getElementById('quiz-question-text').textContent = qData.q[lang];
+  document.getElementById('quiz-progress').textContent = lang === 'en'
+    ? `Q ${state.quizIndex + 1} / ${QUIZ_BANK.length}`
+    : `第 ${state.quizIndex + 1} / ${QUIZ_BANK.length} 題`;
+
+  const scoreCount = state.quizAnswers.filter((ans, idx) => ans !== undefined && QUIZ_BANK[idx].opts[ans].correct).length;
+  document.getElementById('quiz-score').textContent = lang === 'en' ? `Score: ${scoreCount}` : `得分：${scoreCount}`;
+
+  // Draw diagram
+  const qCanvas = document.getElementById('quiz-canvas');
+  const qCtx = qCanvas.getContext('2d');
+  qCtx.clearRect(0, 0, qCanvas.width, qCanvas.height);
+  qData.draw(qCtx, qCanvas.width, qCanvas.height);
+
+  // Render options safely via createElement
+  const optsWrap = document.getElementById('quiz-options');
+  const chosenIdx = state.quizAnswers[state.quizIndex];
+  const hasAnswered = chosenIdx !== undefined;
+  const optNodes = qData.opts.map((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'quiz-opt';
+    btn.textContent = `${String.fromCharCode(65 + idx)}. ${opt.label[lang]}`;
+    btn.disabled = hasAnswered;
+    if (hasAnswered) {
+      if (opt.correct) btn.classList.add('correct');
+      else if (idx === chosenIdx) btn.classList.add('wrong');
+    }
+    btn.addEventListener('click', () => {
+      state.quizAnswers[state.quizIndex] = idx;
+      renderQuiz();
+    });
+    return btn;
+  });
+  optsWrap.replaceChildren(...optNodes);
+
+  // Feedback box
+  const fb = document.getElementById('quiz-feedback');
+  if (hasAnswered) {
+    const chosen = qData.opts[chosenIdx];
+    fb.className = `quiz-feedback ${chosen.correct ? 'ok' : 'err'}`;
+    fb.textContent = chosen.diag[lang];
+    fb.classList.remove('hidden');
+  } else {
+    fb.classList.add('hidden');
+  }
+
+  document.getElementById('btn-prev-q').disabled = state.quizIndex === 0;
+  document.getElementById('btn-next-q').disabled = state.quizIndex === QUIZ_BANK.length - 1;
+  const allDone = state.quizAnswers.filter((x) => x !== undefined).length === QUIZ_BANK.length;
+  document.getElementById('btn-reset-q').classList.toggle('hidden', !allDone);
+}
+
+// --- 8. UI Synchronization ---
+function renderDirectionGrid(containerId, activeKey, onSelect) {
+  const t = I18N[state.lang];
+  const container = document.getElementById(containerId);
+  const btns = DIR_KEYS.map((k) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = `dir-btn${k === activeKey ? ' active' : ''}`;
+    b.textContent = t.dirs[k];
+    b.addEventListener('click', () => onSelect(k));
+    return b;
+  });
+  container.replaceChildren(...btns);
+}
+
+function updateLabUI() {
+  const t = I18N[state.lang];
+  const isGrip = state.rule === 'grip';
+  document.getElementById('fleming-controls').classList.toggle('hidden', isGrip);
+  document.getElementById('grip-controls').classList.toggle('hidden', !isGrip);
+
+  // Decision cards
+  document.querySelectorAll('.rule-card').forEach((card) => {
+    card.classList.toggle('active', card.dataset.rule === state.rule);
+  });
+
+  // Pitfall list
+  const pitList = document.getElementById('pitfall-list');
+  const items = t.pitfalls[state.rule].map((line) => {
+    const li = document.createElement('li');
+    li.textContent = line;
+    return li;
+  });
+  pitList.replaceChildren(...items);
+
+  if (isGrip) {
+    solveGrip();
+    document.querySelectorAll('.grip-type-btn').forEach((b) => {
+      b.classList.toggle('active', b.dataset.griptype === state.gripType);
+    });
+    document.getElementById('grip-wire-options').classList.toggle('hidden', state.gripType !== 'wire');
+    document.getElementById('grip-solenoid-options').classList.toggle('hidden', state.gripType !== 'solenoid');
+
+    if (state.gripType === 'wire') {
+      renderDirectionGrid('grip-wire-dir-grid', state.gripWireDir, (k) => {
+        state.gripWireDir = k;
+        updateLabUI();
+      });
+      const loopDesc = state.gripWireDir === 'out'
+        ? (state.lang === 'en' ? 'Counter-Clockwise from front view' : '從正視角呈逆時針方向')
+        : (state.gripWireDir === 'into'
+          ? (state.lang === 'en' ? 'Clockwise from front view' : '從正視角呈順時針方向')
+          : (state.lang === 'en' ? 'Concentric rings around the wire (right-hand curl)' : '圍繞導線呈同心圓（順着右手四指環繞）'));
+      document.getElementById('grip-result-value').textContent = state.lang === 'en'
+        ? 'Circular B-field around wire'
+        : '導線周圍呈同心圓磁感線';
+      document.getElementById('grip-result-explain').textContent = state.lang === 'en'
+        ? `Thumb points along I (${t.dirs[state.gripWireDir]}). Curled 4 fingers show B-field: ${loopDesc}.`
+        : `右手拇指指向電流 (${t.dirs[state.gripWireDir]})，四指彎曲方向即為藍色磁感線環繞方向（${loopDesc}）。`;
+    } else {
+      document.querySelectorAll('.sol-btn').forEach((b) => {
+        b.classList.toggle('active', b.dataset.sol === state.gripSolDir);
+      });
+      const leftN = state.gripSolDir === 'up';
+      document.getElementById('grip-result-value').textContent = state.lang === 'en'
+        ? (leftN ? 'Left end = North (N), Right = South (S)' : 'Right end = North (N), Left = South (S)')
+        : (leftN ? '左端為 N 極 · 右端為 S 極' : '右端為 N 極 · 左端為 S 極');
+      document.getElementById('grip-result-explain').textContent = state.lang === 'en'
+        ? 'Curl 4 right-hand fingers along coil front-face current; your thumb points straight to the North pole.'
+        : '右手四指順着螺線管前方線圈的電流方向握住，拇指伸直所指的一端即為磁鐵 N 極。';
+    }
+    return;
+  }
+
+  // Fleming Left / Right UI
+  const isLeft = state.rule === 'left';
+  document.getElementById('charge-trap-box').classList.toggle('hidden', !isLeft);
+  const isElectron = isLeft && state.chargeType === 'electron';
+  document.getElementById('electron-warning').classList.toggle('hidden', !isElectron);
+
+  document.querySelectorAll('.charge-btn').forEach((b) => {
+    b.classList.toggle('active', b.dataset.charge === state.chargeType);
+  });
+
+  // Update pair button labels for Left (F) vs Right (v)
+  const thirdSym = isLeft ? 'F' : 'v';
+  const pairLabels = state.lang === 'en'
+    ? { BI: `Given B & I → Find ${thirdSym}`, FB: `Given ${thirdSym} & B → Find I`, FI: `Given ${thirdSym} & I → Find B` }
+    : (state.lang === 'zh-CN'
+      ? { BI: `已知 B 和 I → 求 ${thirdSym}`, FB: `已知 ${thirdSym} 和 B → 求 I`, FI: `已知 ${thirdSym} 和 I → 求 B` }
+      : { BI: `已知 B 和 I → 求 ${thirdSym}`, FB: `已知 ${thirdSym} 和 B → 求 I`, FI: `已知 ${thirdSym} 和 I → 求 B` });
+
+  document.querySelectorAll('.pair-btn').forEach((b) => {
+    b.classList.toggle('active', b.dataset.pair === state.knownPair);
+    b.textContent = pairLabels[b.dataset.pair];
+  });
+
+  // Labels & dot colors for known1 / known2
+  const k1Dot = document.getElementById('known1-dot');
+  const k2Dot = document.getElementById('known2-dot');
+  const k1Lbl = document.getElementById('known1-label');
+  const k2Lbl = document.getElementById('known2-label');
+
+  const lblF = isLeft ? t.thumbLabelLeft : t.thumbLabelRight;
+  const lblB = t.indexLabel;
+  const lblI = isElectron ? t.particleMoveLabel : (isLeft ? t.middleLabelLeft : t.middleLabelRight);
+
+  if (state.knownPair === 'BI') {
+    k1Dot.className = 'dot dot-field'; k1Lbl.textContent = lblB;
+    k2Dot.className = 'dot dot-current'; k2Lbl.textContent = lblI;
+  } else if (state.knownPair === 'FB') {
+    k1Dot.className = 'dot dot-force'; k1Lbl.textContent = lblF;
+    k2Dot.className = 'dot dot-field'; k2Lbl.textContent = lblB;
+  } else {
+    k1Dot.className = 'dot dot-force'; k1Lbl.textContent = lblF;
+    k2Dot.className = 'dot dot-current'; k2Lbl.textContent = lblI;
+  }
+
+  renderDirectionGrid('known1-grid', state.known1Dir, (k) => {
+    state.known1Dir = k;
+    state.revealed = false;
+    updateLabUI();
+  });
+  renderDirectionGrid('known2-grid', state.known2Dir, (k) => {
+    state.known2Dir = k;
+    state.revealed = false;
+    updateLabUI();
+  });
+
+  solveFleming();
+
+  const resRoleLabel = state.solved.resultRole === 'B' ? lblB
+    : (state.solved.resultRole === 'I' ? lblI : lblF);
+  document.getElementById('result-label').textContent = state.lang === 'en'
+    ? `Result (${resRoleLabel})`
+    : `求解結果（${resRoleLabel}）`;
+
+  const resValEl = document.getElementById('result-value');
+  const resExpEl = document.getElementById('result-explain');
+  const revealBtn = document.getElementById('btn-reveal-answer');
+
+  if (!state.solved.valid) {
+    revealBtn.classList.add('hidden');
+    resValEl.textContent = t.parallelWarn;
+    resExpEl.textContent = isLeft ? t.parallelExplainLeft : t.parallelExplainRight;
+  } else if (state.hideAnswer && !state.revealed) {
+    revealBtn.classList.remove('hidden');
+    resValEl.textContent = t.hiddenAnswerText;
+    resExpEl.textContent = '';
+  } else {
+    revealBtn.classList.add('hidden');
+    resValEl.textContent = t.dirs[state.solved.resultKey];
+    if (isElectron) {
+      resExpEl.textContent = state.lang === 'en'
+        ? `Because electrons are negative, Second finger (I) points ${t.dirs[dirKeyFromVec(state.solved.I)]} (opposite to electron velocity).`
+        : `因電子帶負電，中指（傳統電流 I）方向為「${t.dirs[dirKeyFromVec(state.solved.I)]}」（與電子運動方向相反）！`;
+    } else {
+      resExpEl.textContent = state.lang === 'en'
+        ? `Thumb = ${t.dirs[dirKeyFromVec(state.solved.F)]}, First = ${t.dirs[dirKeyFromVec(state.solved.B)]}, Second = ${t.dirs[dirKeyFromVec(state.solved.I)]}.`
+        : `三指核對：拇指 ${t.dirs[dirKeyFromVec(state.solved.F)]} ｜ 食指 ${t.dirs[dirKeyFromVec(state.solved.B)]} ｜ 中指 ${t.dirs[dirKeyFromVec(state.solved.I)]}。`;
+    }
+  }
+}
+
+function applyLanguage() {
+  const t = I18N[state.lang];
+  document.documentElement.lang = state.lang;
+  document.getElementById('app-title').textContent = t.appTitle;
+  document.getElementById('app-subtitle').textContent = t.appSubtitle;
+
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.dataset.i18n;
+    if (t[key]) el.textContent = t[key];
+  });
+
+  document.querySelectorAll('.lang-btn').forEach((b) => {
+    b.classList.toggle('active', b.dataset.lang === state.lang);
+  });
+
+  updateLabUI();
+  buildSandboxControls();
+  renderQuiz();
+}
+
+// --- 9. Event Listeners & Animation Loop ---
+document.querySelectorAll('.lang-btn').forEach((b) => {
+  b.addEventListener('click', () => {
+    state.lang = b.dataset.lang;
+    applyLanguage();
+  });
+});
+
+document.querySelectorAll('.nav-tab').forEach((tab) => {
+  tab.addEventListener('click', () => {
+    state.tab = tab.dataset.tab;
+    document.querySelectorAll('.nav-tab').forEach((n) => {
+      const active = n.dataset.tab === state.tab;
+      n.classList.toggle('active', active);
+      n.setAttribute('aria-selected', String(active));
+    });
+    document.querySelectorAll('.tab-panel').forEach((p) => {
+      p.classList.toggle('active', p.id === `panel-${state.tab}`);
+    });
+  });
+});
+
+document.querySelectorAll('.rule-card').forEach((card) => {
+  card.addEventListener('click', () => {
+    state.rule = card.dataset.rule;
+    state.revealed = false;
+    updateLabUI();
+  });
+});
+
+document.querySelectorAll('.pair-btn').forEach((b) => {
+  b.addEventListener('click', () => {
+    state.knownPair = b.dataset.pair;
+    state.revealed = false;
+    updateLabUI();
+  });
+});
+
+document.querySelectorAll('.charge-btn').forEach((b) => {
+  b.addEventListener('click', () => {
+    state.chargeType = b.dataset.charge;
+    state.revealed = false;
+    updateLabUI();
+  });
+});
+
+document.querySelectorAll('.grip-type-btn').forEach((b) => {
+  b.addEventListener('click', () => {
+    state.gripType = b.dataset.griptype;
+    updateLabUI();
+  });
+});
+
+document.querySelectorAll('.sol-btn').forEach((b) => {
+  b.addEventListener('click', () => {
+    state.gripSolDir = b.dataset.sol;
+    updateLabUI();
+  });
+});
+
+document.getElementById('btn-quiz-hide').addEventListener('click', (e) => {
+  state.hideAnswer = !state.hideAnswer;
+  state.revealed = false;
+  e.currentTarget.classList.toggle('active', state.hideAnswer);
+  updateLabUI();
+});
+
+document.getElementById('btn-reveal-answer').addEventListener('click', () => {
+  state.revealed = true;
+  updateLabUI();
+});
+
+// Camera Presets
+const CAM_PRESETS = {
+  iso:   { yaw: -0.52, pitch: 0.34 },
+  front: { yaw: 0.0,   pitch: 0.0 },
+  top:   { yaw: 0.0,   pitch: 1.38 },
+  side:  { yaw: -1.52, pitch: 0.05 }
+};
+
+document.querySelectorAll('.preset-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const p = CAM_PRESETS[btn.dataset.cam];
+    state.targetYaw = p.yaw;
+    state.targetPitch = p.pitch;
+    document.querySelectorAll('.preset-btn').forEach((x) => x.classList.toggle('active', x === btn));
+  });
+});
+
+// Pointer drag orbit & wheel zoom on 3D canvas
+let dragging = false, lastX = 0, lastY = 0;
+handCanvas.addEventListener('pointerdown', (e) => {
+  dragging = true;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  handCanvas.setPointerCapture(e.pointerId);
+});
+handCanvas.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  const dx = e.clientX - lastX;
+  const dy = e.clientY - lastY;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  state.targetYaw -= dx * 0.01;
+  state.targetPitch = Math.max(-1.42, Math.min(1.42, state.targetPitch + dy * 0.01));
+  document.querySelectorAll('.preset-btn').forEach((x) => x.classList.remove('active'));
+});
+handCanvas.addEventListener('pointerup', () => { dragging = false; });
+handCanvas.addEventListener('pointercancel', () => { dragging = false; });
+handCanvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  state.camDist = Math.max(4.8, Math.min(11.5, state.camDist + e.deltaY * 0.004));
+}, { passive: false });
+
+// Sandbox scene switching
+document.querySelectorAll('.scene-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    state.sandboxScene = btn.dataset.scene;
+    document.querySelectorAll('.scene-btn').forEach((x) => x.classList.toggle('active', x === btn));
+    buildSandboxControls();
+  });
+});
+
+// Quiz buttons
+document.getElementById('btn-prev-q').addEventListener('click', () => {
+  if (state.quizIndex > 0) { state.quizIndex--; renderQuiz(); }
+});
+document.getElementById('btn-next-q').addEventListener('click', () => {
+  if (state.quizIndex < QUIZ_BANK.length - 1) { state.quizIndex++; renderQuiz(); }
+});
+document.getElementById('btn-reset-q').addEventListener('click', () => {
+  state.quizIndex = 0;
+  state.quizAnswers = [];
+  renderQuiz();
+});
+
+// Main animation loop
+let lastFrame = 0;
+function loop(ts) {
+  const dt = lastFrame ? Math.min(0.05, (ts - lastFrame) / 1000) : 0.016;
+  lastFrame = ts;
+  if (state.tab === 'lab') drawHandViewport(ts);
+  if (state.tab === 'sandbox') renderSandbox(dt);
+  requestAnimationFrame(loop);
+}
+
+// Initial boot
+applyLanguage();
+state.currentQuat = [...state.targetQuat];
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
